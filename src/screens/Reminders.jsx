@@ -5,41 +5,21 @@ import { Badge } from '../components/Badge.jsx';
 import { Avatar } from '../components/Avatar.jsx';
 import { Icon, WhatsAppIcon } from '../components/Icon.jsx';
 import { pending as mockPending, reminders as mockReminders, fmtRs } from '../data/mockData.js';
-import { useReminders } from '../hooks/useReminders.js';
-import { useAuth } from '../context/AuthContext.jsx';
 
 export function Reminders({ isMobile }) {
-  const { user } = useAuth();
-  const { pending: livePending, reminders: liveReminders, sendReminder, sendAll, loading } = useReminders();
-
-  const pending   = user ? livePending   : mockPending;
-  const reminders = user ? liveReminders : mockReminders;
-
   const [sent, setSent] = useState({});
 
-  async function handleSendAll() {
-    if (user) {
-      await sendAll();
-    } else {
-      setSent(Object.fromEntries(mockPending.map(p => [p.id, true])));
-    }
+  const normalizedPending   = mockPending;
+  const normalizedReminders = mockReminders;
+  const loading = false;
+
+  function handleSendAll() {
+    setSent(Object.fromEntries(mockPending.map(p => [p.id, true])));
   }
 
-  async function handleSendOne(id, amount) {
-    if (user) {
-      await sendReminder(id, amount);
-    } else {
-      setSent(prev => ({ ...prev, [id]: true }));
-    }
+  function handleSendOne(id) {
+    setSent(prev => ({ ...prev, [id]: true }));
   }
-
-  const normalizedPending = user
-    ? pending.map(s => ({ id: s.id, name: s.name, cls: s.class?.name || '—', fee: s.class?.monthly_fee || 0, wa: s.parent_phone || '—' }))
-    : pending;
-
-  const normalizedReminders = user
-    ? reminders.map(r => ({ name: r.student?.name || '—', amount: r.amount, sent: new Date(r.sent_at).toLocaleDateString('en-PK'), status: r.status === 'sent' ? 'Sent' : r.status === 'failed' ? 'Failed' : 'Delivered' }))
-    : reminders;
 
   if (isMobile) {
     return (

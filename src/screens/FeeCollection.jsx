@@ -6,15 +6,9 @@ import { Input } from '../components/Input.jsx';
 import { Select } from '../components/Select.jsx';
 import { Icon } from '../components/Icon.jsx';
 import { students as mockStudents } from '../data/mockData.js';
-import { useStudents } from '../hooks/useStudents.js';
-import { usePayments } from '../hooks/usePayments.js';
-import { useAuth } from '../context/AuthContext.jsx';
 
 export function FeeCollection({ isMobile }) {
-  const { user } = useAuth();
-  const { students: liveStudents } = useStudents();
-  const { recordPayment } = usePayments();
-  const studentList = user ? liveStudents : mockStudents;
+  const studentList = mockStudents;
 
   const [drag, setDrag] = useState(false);
   const [uploaded, setUploaded] = useState(false);
@@ -26,21 +20,13 @@ export function FeeCollection({ isMobile }) {
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
 
-  async function handleSubmit() {
-    if (!user) { setSuccess(true); return; }
+  function handleSubmit() {
     setSaving(true);
-    const student = liveStudents.find(s => s.name === form.studentId || s.id === form.studentId);
-    const { error } = await recordPayment({
-      student_id: student?.id,
-      amount: Number(form.amount),
-      fee_month: form.feeMonth || new Date().toISOString().slice(0, 10),
-      payment_date: form.paymentDate || new Date().toISOString().slice(0, 10),
-      transaction_id: form.transactionId,
-      method: form.method,
-      status: 'paid',
-    });
-    setSaving(false);
-    if (!error) { setSuccess(true); setForm({ studentId: '', transactionId: '', amount: '', feeMonth: '', paymentDate: '', method: 'cash' }); }
+    setTimeout(() => {
+      setSaving(false);
+      setSuccess(true);
+      setForm({ studentId: '', transactionId: '', amount: '', feeMonth: '', paymentDate: '', method: 'cash' });
+    }, 800);
   }
 
   const UploadArea = () => (

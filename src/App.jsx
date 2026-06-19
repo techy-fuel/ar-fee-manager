@@ -9,10 +9,8 @@ import { Reports } from './screens/Reports.jsx';
 import { Reminders } from './screens/Reminders.jsx';
 import { Receipts } from './screens/Receipts.jsx';
 import { Settings } from './screens/Settings.jsx';
-import { Login } from './screens/Login.jsx';
 import { Button } from './components/Button.jsx';
 import { Icon } from './components/Icon.jsx';
-import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 
 const SCREENS = {
   dashboard: Dashboard,
@@ -47,29 +45,9 @@ function useIsMobile() {
 }
 
 export function App() {
-  return (
-    <AuthProvider>
-      <AppInner />
-    </AuthProvider>
-  );
-}
-
-function AppInner() {
-  const { user, loading } = useAuth();
   const [page, setPage] = useState('dashboard');
   const [mobileTab, setMobileTab] = useState('dashboard');
   const isMobile = useIsMobile();
-
-  if (loading) return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-bg)', display: 'grid', placeItems: 'center' }}>
-      <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--fs-sm)' }}>
-        <img src="/assets/logo-mark.svg" alt="" style={{ height: 40, marginBottom: 12, opacity: 0.5 }} />
-        <div>Loading…</div>
-      </div>
-    </div>
-  );
-
-  if (!user) return <Login />;
 
   const navigate = key => {
     setPage(key);

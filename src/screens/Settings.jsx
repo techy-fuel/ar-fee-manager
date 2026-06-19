@@ -4,30 +4,22 @@ import { Button } from '../components/Button.jsx';
 import { Badge } from '../components/Badge.jsx';
 import { Input } from '../components/Input.jsx';
 import { Icon, WhatsAppIcon } from '../components/Icon.jsx';
-import { useAuth } from '../context/AuthContext.jsx';
-import { supabase } from '../lib/supabase.js';
 
 export function Settings({ isMobile }) {
-  const { academy, signOut } = useAuth();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved]   = useState(false);
   const [form, setForm]     = useState({
-    name:  academy?.name  || 'Al Rehman Academy',
-    email: academy?.email || 'admin@alrehman.edu.pk',
-    phone: academy?.phone || '+92 42 35551234',
+    name:  'Al Rehman Academy',
+    email: 'admin@alrehman.edu.pk',
+    phone: '+92 42 35551234',
   });
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
 
-  async function saveAcademy(e) {
+  function saveAcademy(e) {
     e.preventDefault();
     setSaving(true);
-    if (academy?.id) {
-      await supabase.from('academies').update({ name: form.name, email: form.email, phone: form.phone }).eq('id', academy.id);
-    }
-    setSaved(true);
-    setSaving(false);
-    setTimeout(() => setSaved(false), 3000);
+    setTimeout(() => { setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 3000); }, 600);
   }
   const content = (
     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
@@ -76,15 +68,6 @@ export function Settings({ isMobile }) {
           {['Bank Transfer', 'JazzCash', 'EasyPaisa', 'Cash'].map(m => (
             <Badge key={m} variant="brand">{m}</Badge>
           ))}
-        </div>
-      </Card>
-
-      <Card title="Account" style={isMobile ? {} : { gridColumn: '1 / -1' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)' }}>
-            Signed in as <b style={{ color: 'var(--text-strong)' }}>{academy?.email || 'admin@alrehman.edu.pk'}</b>
-          </div>
-          <Button variant="danger" iconLeft={<Icon name="logout" size={16} />} onClick={signOut}>Sign Out</Button>
         </div>
       </Card>
 

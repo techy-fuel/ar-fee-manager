@@ -1,6 +1,5 @@
 import { Avatar } from '../components/Avatar.jsx';
 import { Icon } from '../components/Icon.jsx';
-import { useAuth } from '../context/AuthContext.jsx';
 
 const NAV = [
   { key: 'dashboard', label: 'Dashboard',          icon: 'dashboard' },
@@ -13,10 +12,9 @@ const NAV = [
 ];
 
 export function Sidebar({ active, onNavigate }) {
-  const { academy, profile, signOut } = useAuth();
-  const academyName = academy?.name || 'Al Rehman';
-  const userName = profile?.full_name || 'Administrator';
-  const userRole = profile?.role === 'admin' ? 'Administrator' : profile?.role === 'collector' ? 'Fee Collector' : 'Viewer';
+  const academyName = 'Al Rehman Academy';
+  const userName = 'Administrator';
+  const userRole = 'Administrator';
 
   return (
     <aside style={{
@@ -48,8 +46,8 @@ export function Sidebar({ active, onNavigate }) {
             <div style={{ color: '#fff', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userName}</div>
             <div style={{ color: 'var(--text-on-dark-muted)', fontSize: 11 }}>{userRole}</div>
           </div>
-          <span onClick={signOut} title="Sign out" style={{ marginLeft: 'auto', color: 'var(--text-on-dark-muted)', display: 'inline-flex', cursor: 'pointer' }}>
-            <Icon name="logout" size={16} />
+          <span style={{ marginLeft: 'auto', color: 'var(--text-on-dark-muted)', display: 'inline-flex' }}>
+            <Icon name="settings" size={16} />
           </span>
         </div>
       </div>

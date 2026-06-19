@@ -7,9 +7,12 @@ import { Input } from '../components/Input.jsx';
 import { Select } from '../components/Select.jsx';
 import { Modal } from '../components/Modal.jsx';
 import { Icon, WhatsAppIcon } from '../components/Icon.jsx';
+
+const CLASS_OPTIONS = [
+  { value: '', label: 'Select class' },
+  ...['Class 6','Class 7','Class 8','Class 9','Class 10','Class 11','Class 12'].map(c => ({ value: c, label: c })),
+];
 import { students as mockStudents, fmtRs } from '../data/mockData.js';
-import { useStudents } from '../hooks/useStudents.js';
-import { useAuth } from '../context/AuthContext.jsx';
 
 const feeBadge = s =>
   s === 'Paid'    ? <Badge variant="success" dot>Paid</Badge>
@@ -29,51 +32,40 @@ const IconBtn = ({ name, onClick }) => (
 const EMPTY_FORM = { name: '', parent_name: '', parent_phone: '', class_id: '', student_id: '', enrollment_date: '' };
 
 export function Students({ isMobile }) {
-  const { user } = useAuth();
-  const { students: liveStudents, classes, loading, addStudent } = useStudents();
   const [q, setQ]               = useState('');
   const [classFilter, setClassFilter] = useState('');
   const [showAdd, setShowAdd]   = useState(false);
   const [form, setForm]         = useState(EMPTY_FORM);
   const [saving, setSaving]     = useState(false);
   const [formError, setFormError] = useState('');
+  const [localStudents, setLocalStudents] = useState(mockStudents);
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
 
-  async function handleAdd(e) {
+  function handleAdd(e) {
     e.preventDefault();
     if (!form.name.trim()) { setFormError('Student name is required.'); return; }
     setSaving(true);
     setFormError('');
-    const { error } = await addStudent({
-      name: form.name.trim(),
-      parent_name: form.parent_name,
-      parent_phone: form.parent_phone,
-      class_id: form.class_id || null,
-      student_id: form.student_id || null,
-      enrollment_date: form.enrollment_date || null,
-      status: 'active',
-    });
-    setSaving(false);
-    if (error) { setFormError(error.message); return; }
-    setShowAdd(false);
-    setForm(EMPTY_FORM);
+    setTimeout(() => {
+      const newStudent = {
+        id: 'STD-' + String(localStudents.length + 1).padStart(3, '0'),
+        name: form.name.trim(),
+        cls: form.class_id || '—',
+        fee: 0,
+        status: 'Active',
+        feeStatus: 'Pending',
+        wa: form.parent_phone || '—',
+      };
+      setLocalStudents(prev => [...prev, newStudent]);
+      setSaving(false);
+      setShowAdd(false);
+      setForm(EMPTY_FORM);
+    }, 500);
   }
 
-  const source = user ? liveStudents.map(s => ({
-    id: s.student_id || s.id.slice(0, 8).toUpperCase(),
-    _id: s.id,
-    name: s.name,
-    cls: s.class?.name || '—',
-    fee: s.class?.monthly_fee || 0,
-    status: s.status === 'active' ? 'Active' : 'Inactive',
-    feeStatus: 'Pending',
-    wa: s.parent_phone || '—',
-  })) : mockStudents;
-
-  const classOptions = user
-    ? ['All Classes', ...classes.map(c => c.name)]
-    : ['All Classes', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10'];
+  const source = localStudents;
+  const classOptions = ['All Classes', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10'];
 
   const rows = source.filter(s => {
     const matchQ = !q || s.name.toLowerCase().includes(q.toLowerCase()) || s.cls.toLowerCase().includes(q.toLowerCase());
@@ -96,13 +88,7 @@ export function Students({ isMobile }) {
       <form onSubmit={handleAdd} style={{ display: 'grid', gap: 14 }}>
         <Input label="Student Name *" placeholder="Ahmed Raza" value={form.name} onChange={set('name')} />
         <Input label="Student ID" placeholder="STD-001 (optional)" value={form.student_id} onChange={set('student_id')} />
-        <Select
-          label="Class"
-          value={form.class_id}
-          onChange={set('class_id')}
-          options={[{ value: '', label: 'Select class' }, ...classes.map(c => ({ value: c.id, label: c.name }))]}
-          placeholder="Select class"
-        />
+        <Select label="Class" value={form.class_id} onChange={set('class_id')} options={CLASS_OPTIONS} />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <Input label="Parent Name" placeholder="Mr. Raza Khan" value={form.parent_name} onChange={set('parent_name')} />
           <Input label="Parent WhatsApp" placeholder="+92 300 1234567" value={form.parent_phone} onChange={set('parent_phone')} />

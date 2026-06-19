@@ -7,8 +7,6 @@ import { ExpectedVsReceived } from '../charts/ExpectedVsReceived.jsx';
 import { CollectionTrend } from '../charts/CollectionTrend.jsx';
 import { DonutGauge } from '../charts/DonutGauge.jsx';
 import { stats as mockStats, monthly as mockMonthly, transactions, fmtRs } from '../data/mockData.js';
-import { useDashboardStats } from '../hooks/usePayments.js';
-import { useAuth } from '../context/AuthContext.jsx';
 
 const Legend = () => (
   <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
@@ -30,10 +28,8 @@ const KV = ({ label, value, color }) => (
 );
 
 export function Dashboard({ isMobile }) {
-  const { user } = useAuth();
-  const { stats: liveStats, monthly: liveMonthly } = useDashboardStats();
-  const s = (user && liveStats) ? liveStats : mockStats;
-  const monthly = (user && liveMonthly?.length) ? liveMonthly : mockMonthly;
+  const s = mockStats;
+  const monthly = mockMonthly;
 
   if (isMobile) {
     return (
