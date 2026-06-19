@@ -1,0 +1,251 @@
+/* ============================================================
+   Al Rehman Fee Manager — Design Tokens + Global Styles
+   Brand blue #248DCE sampled from Al Rehman Academy logo
+   ============================================================ */
+
+:root {
+  /* Brand blue scale */
+  --blue-50:  #eaf4fb;
+  --blue-100: #d2e8f6;
+  --blue-200: #a9d2ee;
+  --blue-300: #79b8e4;
+  --blue-400: #4ba0d9;
+  --blue-500: #248dce;
+  --blue-600: #1b73ad;
+  --blue-700: #175c8c;
+  --blue-800: #154b71;
+  --blue-900: #123c59;
+
+  /* Navy */
+  --navy-700: #14365c;
+  --navy-800: #0f2a49;
+  --navy-900: #0b1f38;
+
+  /* Neutral / slate */
+  --white:     #ffffff;
+  --slate-50:  #f7f9fc;
+  --slate-100: #eef2f7;
+  --slate-200: #e3e9f0;
+  --slate-300: #cdd6e2;
+  --slate-400: #9aa7b8;
+  --slate-500: #6b7889;
+  --slate-600: #4d5a6b;
+  --slate-700: #374352;
+  --slate-800: #232d3b;
+  --slate-900: #131b27;
+
+  /* Status — success */
+  --green-50:  #e7f6ee;
+  --green-100: #c7ebd6;
+  --green-500: #16a34a;
+  --green-600: #128140;
+  --green-700: #0e6633;
+
+  /* Status — warning */
+  --amber-50:  #fdf3e3;
+  --amber-100: #f9e1bd;
+  --amber-500: #e08a0b;
+  --amber-600: #b86f06;
+  --amber-700: #8f5604;
+
+  /* Status — danger */
+  --red-50:  #fdecec;
+  --red-100: #f9d0d0;
+  --red-500: #dc2626;
+  --red-600: #b91c1c;
+  --red-700: #991b1b;
+
+  /* WhatsApp */
+  --whatsapp:      #25d366;
+  --whatsapp-dark: #1da851;
+
+  /* Semantic surface */
+  --color-bg:             var(--slate-50);
+  --color-surface:        var(--white);
+  --color-surface-sunken: var(--slate-50);
+  --color-surface-hover:  var(--slate-100);
+  --color-sidebar:        var(--navy-900);
+  --color-sidebar-hover:  rgba(255,255,255,0.06);
+  --color-sidebar-active: var(--blue-500);
+
+  /* Brand / primary */
+  --color-primary:        var(--blue-500);
+  --color-primary-hover:  var(--blue-600);
+  --color-primary-active: var(--blue-700);
+  --color-primary-subtle: var(--blue-50);
+  --color-primary-border: var(--blue-200);
+  --color-on-primary:     var(--white);
+
+  /* Text */
+  --text-strong:        var(--slate-900);
+  --text-primary:       var(--slate-800);
+  --text-secondary:     var(--slate-600);
+  --text-muted:         var(--slate-500);
+  --text-faint:         var(--slate-400);
+  --text-on-dark:       rgba(255,255,255,0.92);
+  --text-on-dark-muted: rgba(255,255,255,0.58);
+  --text-link:          var(--blue-600);
+
+  /* Borders */
+  --border-subtle:  var(--slate-200);
+  --border-default: var(--slate-300);
+  --border-strong:  var(--slate-400);
+  --border-focus:   var(--blue-500);
+
+  /* Status semantic */
+  --status-success-fg:     var(--green-700);
+  --status-success-bg:     var(--green-50);
+  --status-success-border: var(--green-100);
+  --status-success-solid:  var(--green-500);
+  --status-warning-fg:     var(--amber-700);
+  --status-warning-bg:     var(--amber-50);
+  --status-warning-border: var(--amber-100);
+  --status-warning-solid:  var(--amber-500);
+  --status-danger-fg:      var(--red-700);
+  --status-danger-bg:      var(--red-50);
+  --status-danger-border:  var(--red-100);
+  --status-danger-solid:   var(--red-500);
+  --status-info-fg:        var(--blue-700);
+  --status-info-bg:        var(--blue-50);
+  --status-info-border:    var(--blue-100);
+  --status-info-solid:     var(--blue-500);
+
+  /* Charts */
+  --chart-1: var(--blue-500);
+  --chart-2: var(--green-500);
+  --chart-3: var(--amber-500);
+  --chart-4: var(--blue-300);
+  --chart-5: var(--navy-700);
+  --chart-grid: var(--slate-200);
+  --chart-track: var(--slate-100);
+
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --font-display: var(--font-sans);
+
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+  --fw-extra:    800;
+
+  --fs-display: 2.5rem;
+  --fs-h1:      2rem;
+  --fs-h2:      1.5rem;
+  --fs-h3:      1.25rem;
+  --fs-h4:      1.0625rem;
+  --fs-body:    0.9375rem;
+  --fs-sm:      0.8125rem;
+  --fs-xs:      0.75rem;
+  --fs-2xs:     0.6875rem;
+
+  --lh-tight:   1.1;
+  --lh-snug:    1.25;
+  --lh-normal:  1.45;
+  --lh-relaxed: 1.6;
+
+  --ls-tight:    -0.02em;
+  --ls-snug:     -0.01em;
+  --ls-normal:   0;
+  --ls-wide:     0.02em;
+  --ls-overline: 0.08em;
+
+  /* Spacing */
+  --space-0:  0;
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* Radii */
+  --radius-xs:   4px;
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   20px;
+  --radius-full: 999px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(19,27,39,0.05);
+  --shadow-sm: 0 1px 2px rgba(19,27,39,0.06), 0 1px 3px rgba(19,27,39,0.05);
+  --shadow-md: 0 2px 4px rgba(19,27,39,0.05), 0 4px 12px rgba(19,27,39,0.07);
+  --shadow-lg: 0 8px 24px rgba(19,27,39,0.10), 0 2px 6px rgba(19,27,39,0.06);
+  --shadow-xl: 0 16px 48px rgba(11,31,56,0.16), 0 4px 12px rgba(11,31,56,0.08);
+
+  /* Focus ring */
+  --ring-primary: 0 0 0 3px rgba(36,141,206,0.30);
+  --ring-danger:  0 0 0 3px rgba(220,38,38,0.25);
+
+  /* Card preset */
+  --card-bg:     var(--color-surface);
+  --card-border: var(--border-subtle);
+  --card-radius: var(--radius-lg);
+  --card-shadow: var(--shadow-sm);
+  --card-pad:    var(--space-6);
+
+  /* Layout */
+  --sidebar-width:  264px;
+  --topbar-height:  64px;
+  --mobile-nav-h:   60px;
+  --content-max:    1440px;
+
+  /* Motion */
+  --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast:    120ms;
+  --dur-base:    180ms;
+  --dur-slow:    280ms;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
+  color: var(--text-primary);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: var(--fw-bold);
+  color: var(--text-strong);
+}
+
+a { color: var(--text-link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+::selection { background: var(--blue-100); color: var(--navy-900); }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb {
+  background: var(--slate-300);
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--slate-400);
+  background-clip: content-box;
+}
+
+/* Spin animation for button loading */
+@keyframes arfm-spin {
+  to { transform: rotate(360deg); }
+}
