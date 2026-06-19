@@ -1,0 +1,34 @@
+<!-- @dsCard group="Components" viewport="700x300" name="Card surface" subtitle="The panel container" -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../styles.css">
+<style> body { margin: 0; padding: 24px; background: var(--color-bg); } </style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script type="text/babel">
+const { Card, Button, Badge } = window.AlRehmanFeeManagerDesignSystem_ad9d9e;
+function Demo() {
+  return (
+    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+      <Card title="Fee Collection" subtitle="July 2025"
+        actions={<Button size="sm" variant="ghost">Export</Button>}
+        footer={<div style={{display:'flex',justifyContent:'space-between',fontSize:'var(--fs-sm)',color:'var(--text-secondary)'}}><span>Total received</span><strong style={{color:'var(--text-strong)'}}>Rs 3,42,000</strong></div>}>
+        <p style={{margin:0,color:'var(--text-secondary)',fontSize:'var(--fs-sm)'}}>A surface with header, body and a sunken footer for totals and actions.</p>
+      </Card>
+      <Card interactive title="Class 7-B" subtitle="42 students" actions={<Badge variant="success" dot>On track</Badge>}>
+        <p style={{margin:0,color:'var(--text-secondary)',fontSize:'var(--fs-sm)'}}>Interactive cards lift on hover — use for clickable list items and class tiles.</p>
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo/>);
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+/* ============================================================
+   Al Rehman Fee Manager — Fonts
+   No custom font files were supplied with the brand, so the system
+   uses Google Fonts as the canonical typefaces:
+     • Plus Jakarta Sans — UI / display (modern, premium SaaS feel)
+     • IBM Plex Mono     — figures, transaction IDs, receipt numbers
+   If brand fonts exist, replace the @import below and add @font-face.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');

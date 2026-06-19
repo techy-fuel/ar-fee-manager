@@ -1,0 +1,26 @@
+<!-- @dsCard group="Spacing" viewport="700x160" name="Radii" subtitle="Corner radius tokens" -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin:0; padding:22px; background:var(--color-surface); font-family:var(--font-sans); }
+  .row { display:flex; gap:18px; align-items:flex-end; }
+  .col { display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .box { width:72px; height:56px; background:var(--blue-50); border:1.5px solid var(--blue-400); }
+  .t { font-size:var(--fs-2xs); color:var(--text-muted); font-family:var(--font-mono); text-align:center; }
+  .t b { display:block; color:var(--text-strong); }
+</style>
+</head>
+<body>
+<div class="row">
+  <div class="col"><div class="box" style="border-radius:var(--radius-xs)"></div><span class="t"><b>xs</b>4px</span></div>
+  <div class="col"><div class="box" style="border-radius:var(--radius-sm)"></div><span class="t"><b>sm</b>6px</span></div>
+  <div class="col"><div class="box" style="border-radius:var(--radius-md)"></div><span class="t"><b>md</b>10px · controls</span></div>
+  <div class="col"><div class="box" style="border-radius:var(--radius-lg)"></div><span class="t"><b>lg</b>14px · cards</span></div>
+  <div class="col"><div class="box" style="border-radius:var(--radius-xl)"></div><span class="t"><b>xl</b>20px · panels</span></div>
+  <div class="col"><div class="box" style="border-radius:var(--radius-full);width:56px"></div><span class="t"><b>full</b>pills</span></div>
+</div>
+</body>
+</html>

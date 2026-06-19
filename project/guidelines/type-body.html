@@ -1,0 +1,24 @@
+<!-- @dsCard group="Type" viewport="700x200" name="Body & Labels" subtitle="UI text sizes" -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin:0; padding:22px; background:var(--color-surface); font-family:var(--font-sans); color:var(--text-primary); }
+  .item { display:flex; align-items:baseline; gap:16px; padding:7px 0; border-bottom:1px solid var(--border-subtle); }
+  .item:last-child { border-bottom:none; }
+  .tag { flex:none; width:140px; font-size:var(--fs-2xs); color:var(--text-faint); font-family:var(--font-mono); }
+  .body { font-size:var(--fs-body); }
+  .sm { font-size:var(--fs-sm); color:var(--text-secondary); }
+  .xs { font-size:var(--fs-xs); color:var(--text-muted); }
+  .over { font-size:var(--fs-2xs); text-transform:uppercase; letter-spacing:var(--ls-overline); font-weight:var(--fw-bold); color:var(--text-faint); }
+</style>
+</head>
+<body>
+  <div class="item"><span class="tag">Body / 15 / 400</span><span class="body">Ahmed Raza paid the July fee of Rs 3,000 via bank transfer.</span></div>
+  <div class="item"><span class="tag">Small / 13 / 400</span><span class="sm">Secondary text and table cells use the small size for density.</span></div>
+  <div class="item"><span class="tag">Caption / 12 / 400</span><span class="xs">Last reminder sent 2 days ago · WhatsApp delivered</span></div>
+  <div class="item"><span class="tag">Overline / 11 / 700</span><span class="over">Collection Summary</span></div>
+</body>
+</html>

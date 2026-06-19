@@ -1,0 +1,25 @@
+<!-- @dsCard group="Brand" viewport="700x180" name="Logo Variants" subtitle="Stacked lockup & calligraphic mark" -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin:0; padding:24px; background:var(--color-surface); font-family:var(--font-sans); }
+  .row { display:flex; gap:20px; align-items:stretch; }
+  .cell { flex:1; border:1px solid var(--border-subtle); border-radius:var(--radius-lg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:18px; background:var(--color-surface-sunken); }
+  .cell.navy { background:var(--navy-900); }
+  .lbl { font-size:var(--fs-2xs); text-transform:uppercase; letter-spacing:var(--ls-overline); color:var(--text-faint); font-weight:var(--fw-bold); }
+  .lbl.on { color:var(--text-on-dark-muted); }
+  .stacked { height:96px; }
+  .mark { height:80px; }
+</style>
+</head>
+<body>
+<div class="row">
+  <div class="cell"><img class="stacked" src="../assets/logo-stacked.svg" alt="Stacked lockup"><span class="lbl">Stacked lockup</span></div>
+  <div class="cell"><img class="mark" src="../assets/logo-mark.svg" alt="Calligraphic mark"><span class="lbl">App mark / favicon</span></div>
+  <div class="cell navy"><img class="mark" src="../assets/logo-mark-white.svg" alt="Mark on navy"><span class="lbl on">Mark on navy</span></div>
+</div>
+</body>
+</html>

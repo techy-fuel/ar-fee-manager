@@ -1,0 +1,41 @@
+<!-- @dsCard group="Colors" viewport="700x180" name="Status Colors" subtitle="Paid · Pending · Overdue · Info" -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin:0; padding:20px; background:var(--color-surface); font-family:var(--font-sans); }
+  .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+  .cell { border:1px solid var(--border-subtle); border-radius:var(--radius-md); overflow:hidden; }
+  .solid { height:46px; display:flex; align-items:center; padding:0 12px; color:#fff; font-weight:var(--fw-bold); font-size:var(--fs-sm); }
+  .pill { margin:10px 12px; display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:var(--radius-full); font-size:var(--fs-xs); font-weight:var(--fw-semibold); }
+  .dot { width:6px; height:6px; border-radius:50%; }
+  .hex { font-size:var(--fs-2xs); color:var(--text-muted); margin:0 12px 10px; font-family:var(--font-mono); }
+</style>
+</head>
+<body>
+<div class="grid">
+  <div class="cell">
+    <div class="solid" style="background:var(--green-500)">Collected</div>
+    <span class="pill" style="background:var(--status-success-bg);color:var(--status-success-fg);border:1px solid var(--status-success-border)"><span class="dot" style="background:var(--green-500)"></span>Paid</span>
+    <p class="hex">#16A34A</p>
+  </div>
+  <div class="cell">
+    <div class="solid" style="background:var(--amber-500)">Pending</div>
+    <span class="pill" style="background:var(--status-warning-bg);color:var(--status-warning-fg);border:1px solid var(--status-warning-border)"><span class="dot" style="background:var(--amber-500)"></span>Pending</span>
+    <p class="hex">#E08A0B</p>
+  </div>
+  <div class="cell">
+    <div class="solid" style="background:var(--red-500)">Overdue</div>
+    <span class="pill" style="background:var(--status-danger-bg);color:var(--status-danger-fg);border:1px solid var(--status-danger-border)"><span class="dot" style="background:var(--red-500)"></span>Overdue</span>
+    <p class="hex">#DC2626</p>
+  </div>
+  <div class="cell">
+    <div class="solid" style="background:var(--blue-500)">Info</div>
+    <span class="pill" style="background:var(--status-info-bg);color:var(--status-info-fg);border:1px solid var(--status-info-border)"><span class="dot" style="background:var(--blue-500)"></span>New</span>
+    <p class="hex">#248DCE</p>
+  </div>
+</div>
+</body>
+</html>

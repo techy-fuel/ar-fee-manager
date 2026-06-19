@@ -1,0 +1,46 @@
+/* ============================================================
+   Al Rehman Fee Manager — Typography Tokens
+   ============================================================ */
+
+:root {
+  /* ---- Families ---- */
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system,
+               'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo,
+               Consolas, monospace;
+  --font-display: var(--font-sans);
+
+  /* ---- Weights ---- */
+  --fw-regular:  400; /* @kind font */
+  --fw-medium:   500; /* @kind font */
+  --fw-semibold: 600; /* @kind font */
+  --fw-bold:     700; /* @kind font */
+  --fw-extra:    800; /* @kind font */
+
+  /* ---- Type scale (rem, 16px base) ---- */
+  --fs-display: 2.5rem;    /* 40 — page hero / big stats */
+  --fs-h1:      2rem;      /* 32 */
+  --fs-h2:      1.5rem;    /* 24 */
+  --fs-h3:      1.25rem;   /* 20 */
+  --fs-h4:      1.0625rem; /* 17 */
+  --fs-body:    0.9375rem; /* 15 — default UI body */
+  --fs-sm:      0.8125rem; /* 13 — secondary / table cells */
+  --fs-xs:      0.75rem;   /* 12 — labels / captions */
+  --fs-2xs:     0.6875rem; /* 11 — overline / pills */
+
+  /* ---- Line heights ---- */
+  --lh-tight:   1.1; /* @kind font */
+  --lh-snug:    1.25; /* @kind font */
+  --lh-normal:  1.45; /* @kind font */
+  --lh-relaxed: 1.6; /* @kind font */
+
+  /* ---- Letter spacing ---- */
+  --ls-tight:   -0.02em; /* @kind font */
+  --ls-snug:    -0.01em; /* @kind font */
+  --ls-normal:  0; /* @kind font */
+  --ls-wide:    0.02em; /* @kind font */
+  --ls-overline:0.08em;  /* @kind font */
+
+  /* ---- Numeric helper ---- */
+  --num-tabular: tabular-nums; /* @kind font */
+}

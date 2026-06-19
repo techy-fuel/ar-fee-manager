@@ -1,0 +1,64 @@
+<!-- @dsCard group="Fee Manager" viewport="1320x860" name="Fee Manager App" subtitle="Full click-through SaaS recreation" -->
+<!-- @startingPoint section="Fee Manager" subtitle="Full SaaS app — dashboard, students, fees, reports, reminders" viewport="1320x860" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Al Rehman Fee Manager</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--color-bg); overflow: hidden; }
+  #app { display: flex; height: 100vh; }
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100%; }
+  .scroll { flex: 1; overflow-y: auto; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script type="text/babel" src="icons.jsx"></script>
+<script type="text/babel" src="data.jsx"></script>
+<script type="text/babel" src="charts.jsx"></script>
+<script type="text/babel" src="shell.jsx"></script>
+<script type="text/babel" src="screens.jsx"></script>
+<script type="text/babel">
+const { Button } = window.AlRehmanFeeManagerDesignSystem_ad9d9e;
+const { Sidebar, Topbar, SCREENS, Icon } = window;
+
+const TITLES = {
+  dashboard: ['Dashboard', 'Fee collection overview · July 2025'],
+  students: ['Students', '1,284 enrolled across 24 classes'],
+  fees: ['Fee Collection', 'Record a payment from a screenshot'],
+  reports: ['Reports', 'Collection analytics & exports'],
+  reminders: ['WhatsApp Reminders', 'Notify parents of pending fees'],
+  receipts: ['Receipts', 'Generate and share fee receipts'],
+  settings: ['Settings', 'Academy configuration'],
+};
+const ACTIONS = {
+  dashboard: <Button variant="primary" iconLeft={<Icon name="plus" size={16} />}>Record Payment</Button>,
+  students: <Button variant="primary" iconLeft={<Icon name="plus" size={16} />}>Add Student</Button>,
+};
+
+function App() {
+  const [page, setPage] = React.useState('dashboard');
+  const Screen = SCREENS[page];
+  const [title, subtitle] = TITLES[page];
+  return (
+    <div id="app">
+      <Sidebar active={page} onNavigate={setPage} />
+      <div className="main">
+        <Topbar title={title} subtitle={subtitle} action={ACTIONS[page]} />
+        <div className="scroll"><Screen /></div>
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

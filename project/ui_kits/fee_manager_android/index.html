@@ -1,0 +1,99 @@
+<!-- @dsCard group="Fee Manager" viewport="900x980" name="Fee Manager — Android" subtitle="Material 3 companion app · click-through" -->
+<!-- @startingPoint section="Fee Manager" subtitle="Android (Material 3) companion app — all features" viewport="900x980" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Al Rehman Fee Manager — Android</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; background: #e9eef5; display: grid; place-items: center; min-height: 100vh; }
+  #root { padding: 28px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script>window.MOBILE_STATUS_TOP = 12;</script>
+<script src="../../_ds_bundle.js"></script>
+<script type="text/babel" src="../fee_manager/icons.jsx"></script>
+<script type="text/babel" src="../fee_manager/data.jsx"></script>
+<script type="text/babel" src="../fee_manager/charts.jsx"></script>
+<script type="text/babel" src="android-frame.jsx"></script>
+<script type="text/babel" src="../fee_manager_mobile/mobile.jsx"></script>
+<script type="text/babel">
+const { AndroidDevice } = window;
+const { Icon, MOBILE_SCREENS, MOBILE_MORE } = window;
+
+const TABS = [
+  { key: 'dashboard', label: 'Home', icon: 'dashboard' },
+  { key: 'students', label: 'Students', icon: 'users' },
+  { key: 'collect', label: 'Collect', icon: 'scan' },
+  { key: 'reminders', label: 'Remind', icon: 'phone' },
+  { key: 'more', label: 'More', icon: 'more' },
+];
+
+// Material 3 navigation bar — pill indicator behind the active icon
+function NavBar({ active, onChange }) {
+  return (
+    <div style={{
+      flex: 'none', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-around',
+      background: '#fff', borderTop: '1px solid var(--border-subtle)',
+      padding: '10px 6px 12px',
+    }}>
+      {TABS.map((t) => {
+        const on = active === t.key;
+        return (
+          <button key={t.key} onClick={() => onChange(t.key)} style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+            border: 'none', background: 'transparent', cursor: 'pointer', flex: 1, padding: 0,
+          }}>
+            <span style={{
+              width: 60, height: 32, borderRadius: 16, display: 'grid', placeItems: 'center',
+              background: on ? 'var(--blue-100)' : 'transparent',
+              color: on ? 'var(--blue-700)' : 'var(--text-muted)',
+              transition: 'background var(--dur-base) var(--ease-out)',
+            }}>
+              <Icon name={t.icon} size={22} strokeWidth={on ? 2.4 : 2} />
+            </span>
+            <span style={{ fontSize: 11, fontWeight: on ? 700 : 600, color: on ? 'var(--navy-900)' : 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>{t.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function AndroidApp() {
+  const [tab, setTab] = React.useState('dashboard');
+  const [sub, setSub] = React.useState(null);
+
+  let Screen, screenProps = {};
+  if (sub) {
+    Screen = MOBILE_MORE[sub];
+    screenProps = { onBack: () => setSub(null) };
+  } else if (tab === 'more') {
+    Screen = MOBILE_MORE.more;
+    screenProps = { onOpen: (k) => setSub(k) };
+  } else {
+    Screen = MOBILE_SCREENS[tab];
+  }
+  return (
+    <AndroidDevice>
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--color-bg)' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <Screen {...screenProps} />
+        </div>
+        <NavBar active={tab === 'more' ? 'more' : tab} onChange={(k) => { setSub(null); setTab(k); }} />
+      </div>
+    </AndroidDevice>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<AndroidApp />);
+</script>
+</body>
+</html>

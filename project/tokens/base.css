@@ -1,0 +1,40 @@
+/* ============================================================
+   Al Rehman Fee Manager — Base / reset
+   Lightweight, opt-in element defaults. Components do not depend
+   on these, but specimen cards and UI kits use them.
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
+  color: var(--text-primary);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Tabular figures everywhere numbers matter by default in data contexts */
+.arfm-num, td.arfm-num, .tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+h1, h2, h3, h4, h5, h6 { margin: 0; font-weight: var(--fw-bold); color: var(--text-strong); }
+
+a { color: var(--text-link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+::selection { background: var(--blue-100); color: var(--navy-900); }
+
+/* Custom scrollbar — subtle, cool */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb {
+  background: var(--slate-300);
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--slate-400); background-clip: content-box; }
