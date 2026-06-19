@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { AppProvider } from './context/AppContext.jsx';
 import { Sidebar } from './layout/Sidebar.jsx';
 import { Topbar } from './layout/Topbar.jsx';
 import { MobileNav, MoreMenu, MobileHeader } from './layout/MobileNav.jsx';
@@ -23,9 +24,9 @@ const SCREENS = {
 };
 
 const TITLES = {
-  dashboard: ['Dashboard', 'Fee collection overview · July 2025'],
-  students:  ['Students', '1,284 enrolled across 24 classes'],
-  fees:      ['Fee Collection', 'Record a payment from a screenshot'],
+  dashboard: ['Dashboard', 'Fee collection overview'],
+  students:  ['Students', 'Enrolled students & classes'],
+  fees:      ['Fee Collection', 'Record a payment'],
   reports:   ['Reports', 'Collection analytics & exports'],
   reminders: ['WhatsApp Reminders', 'Notify parents of pending fees'],
   receipts:  ['Receipts', 'Generate and share fee receipts'],
@@ -45,8 +46,17 @@ function useIsMobile() {
 }
 
 export function App() {
+  return (
+    <AppProvider>
+      <AppInner />
+    </AppProvider>
+  );
+}
+
+function AppInner() {
   const [page, setPage] = useState('dashboard');
   const [mobileTab, setMobileTab] = useState('dashboard');
+  const [addStudentOpen, setAddStudentOpen] = useState(false);
   const isMobile = useIsMobile();
 
   const navigate = key => {
@@ -56,15 +66,25 @@ export function App() {
   };
 
   if (isMobile) {
-    return <MobileApp page={page} mobileTab={mobileTab} onNavigate={navigate} />;
+    return (
+      <MobileApp
+        page={page}
+        mobileTab={mobileTab}
+        onNavigate={navigate}
+        addStudentOpen={addStudentOpen}
+        setAddStudentOpen={setAddStudentOpen}
+      />
+    );
   }
 
   const Screen = SCREENS[page];
   const [title, subtitle] = TITLES[page] || ['', ''];
   const action =
-    page === 'dashboard' ? <Button variant="primary" iconLeft={<Icon name="plus" size={16} />}>Record Payment</Button>
-    : page === 'students'  ? <Button variant="primary" iconLeft={<Icon name="plus" size={16} />}>Add Student</Button>
-    : null;
+    page === 'dashboard'
+      ? <Button variant="primary" iconLeft={<Icon name="plus" size={16} />} onClick={() => navigate('fees')}>Record Payment</Button>
+      : page === 'students'
+      ? <Button variant="primary" iconLeft={<Icon name="plus" size={16} />} onClick={() => setAddStudentOpen(true)}>Add Student</Button>
+      : null;
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: 'var(--color-bg)' }}>
@@ -72,14 +92,18 @@ export function App() {
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
         <Topbar title={title} subtitle={subtitle} action={action} />
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          <Screen />
+          <Screen
+            onNavigate={navigate}
+            addStudentOpen={addStudentOpen}
+            setAddStudentOpen={setAddStudentOpen}
+          />
         </div>
       </div>
     </div>
   );
 }
 
-function MobileApp({ page, mobileTab, onNavigate }) {
+function MobileApp({ page, mobileTab, onNavigate, addStudentOpen, setAddStudentOpen }) {
   const Screen = SCREENS[page];
   const isMore = !MOBILE_MAIN_TABS.includes(page);
   const isMoreTab = mobileTab === 'more';
@@ -100,7 +124,12 @@ function MobileApp({ page, mobileTab, onNavigate }) {
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {page === 'more' || (isMoreTab && !Screen)
           ? <MoreMenu onNavigate={onNavigate} />
-          : <Screen isMobile />}
+          : <Screen
+              isMobile
+              onNavigate={onNavigate}
+              addStudentOpen={addStudentOpen}
+              setAddStudentOpen={setAddStudentOpen}
+            />}
       </div>
       <MobileNav active={mobileTab} onNavigate={onNavigate} />
     </div>

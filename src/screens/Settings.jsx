@@ -1,37 +1,56 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '../components/Card.jsx';
 import { Button } from '../components/Button.jsx';
 import { Badge } from '../components/Badge.jsx';
 import { Input } from '../components/Input.jsx';
 import { Icon, WhatsAppIcon } from '../components/Icon.jsx';
+import { useApp } from '../context/AppContext.jsx';
+import { supabase } from '../lib/supabase.js';
 
 export function Settings({ isMobile }) {
+  const { academy, setAcademy } = useApp();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved]   = useState(false);
-  const [form, setForm]     = useState({
-    name:  'Al Rehman Academy',
-    email: 'admin@alrehman.edu.pk',
-    phone: '+92 42 35551234',
-  });
+  const [error, setError]   = useState('');
+  const [form, setForm]     = useState({ name: '', email: '', phone: '' });
+
+  useEffect(() => {
+    if (academy) {
+      setForm({ name: academy.name || '', email: academy.email || '', phone: academy.phone || '' });
+    }
+  }, [academy]);
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
 
-  function saveAcademy(e) {
+  async function saveAcademy(e) {
     e.preventDefault();
+    if (!form.name.trim()) { setError('Academy name is required.'); return; }
     setSaving(true);
-    setTimeout(() => { setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 3000); }, 600);
+    setError('');
+    const { data, error: err } = await supabase
+      .from('academies')
+      .update({ name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim() })
+      .eq('id', academy.id)
+      .select().single();
+    setSaving(false);
+    if (err) { setError(err.message || 'Failed to save.'); return; }
+    setAcademy(data);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
   }
+
   const content = (
     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
       <Card title="Academy Information" footer={
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <Button variant="primary" loading={saving} onClick={saveAcademy}>Save Changes</Button>
           {saved && <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--green-600)', fontWeight: 600 }}>Saved!</span>}
+          {error && <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--red-600)' }}>{error}</span>}
         </div>
       }>
         <div style={{ display: 'grid', gap: 14 }}>
           <Input label="Academy Name" value={form.name} onChange={set('name')} />
-          <Input label="Contact Email" value={form.email} onChange={set('email')} />
+          <Input label="Contact Email" value={form.email} onChange={set('email')} type="email" />
           <Input label="Phone" value={form.phone} onChange={set('phone')} iconLeft={<Icon name="phone" size={15} />} />
         </div>
       </Card>
@@ -43,7 +62,7 @@ export function Settings({ isMobile }) {
             background: 'var(--slate-50)', border: '1px solid var(--border-subtle)',
             display: 'grid', placeItems: 'center', padding: 12,
           }}>
-            <img src="/assets/logo-mark.svg" alt="" style={{ maxHeight: '100%' }} />
+            <img src="/assets/logo-mark.svg" alt="" style={{ maxHeight: '100%' }} onError={e => e.target.style.display='none'} />
           </div>
           <Button variant="secondary" iconLeft={<Icon name="upload" size={16} />}>Upload new logo</Button>
         </div>
@@ -56,10 +75,10 @@ export function Settings({ isMobile }) {
         }}>
           <WhatsAppIcon size={22} color="var(--whatsapp-dark)" />
           <div style={{ fontSize: 'var(--fs-sm)' }}>
-            <b style={{ color: 'var(--green-700)' }}>Connected</b>
-            <div style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-xs)' }}>Business API · +92 300 1112233</div>
+            <b style={{ color: 'var(--green-700)' }}>Active</b>
+            <div style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-xs)' }}>Reminders open WhatsApp with pre-filled messages</div>
           </div>
-          <Badge variant="success" dot style={{ marginLeft: 'auto' }}>Active</Badge>
+          <Badge variant="success" dot style={{ marginLeft: 'auto' }}>Ready</Badge>
         </div>
       </Card>
 

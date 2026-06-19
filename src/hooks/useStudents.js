@@ -1,30 +1,26 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase.js';
+import { useApp } from '../context/AppContext.jsx';
 
 export function useStudents() {
-  const { academy } = useAuth();
-  const [students, setStudents]   = useState([]);
-  const [classes, setClasses]     = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [error, setError]         = useState(null);
+  const { academy } = useApp();
+  const [students, setStudents] = useState([]);
+  const [classes,  setClasses]  = useState([]);
+  const [loading,  setLoading]  = useState(true);
 
   const load = useCallback(async () => {
     if (!academy) return;
     setLoading(true);
-    const [{ data: s, error: se }, { data: c }] = await Promise.all([
-      supabase
-        .from('students')
+    const [{ data: s }, { data: c }] = await Promise.all([
+      supabase.from('students')
         .select('*, class:classes(name, monthly_fee)')
         .eq('academy_id', academy.id)
         .order('name'),
-      supabase
-        .from('classes')
+      supabase.from('classes')
         .select('*')
         .eq('academy_id', academy.id)
         .order('name'),
     ]);
-    if (se) setError(se.message);
     setStudents(s ?? []);
     setClasses(c ?? []);
     setLoading(false);
@@ -33,25 +29,28 @@ export function useStudents() {
   useEffect(() => { load(); }, [load]);
 
   async function addStudent(data) {
-    const { error } = await supabase.from('students').insert({
-      ...data,
-      academy_id: academy.id,
-    });
-    if (!error) load();
+    const { error } = await supabase.from('students').insert({ ...data, academy_id: academy.id });
+    if (!error) await load();
     return { error };
   }
 
   async function updateStudent(id, data) {
     const { error } = await supabase.from('students').update(data).eq('id', id);
-    if (!error) load();
+    if (!error) await load();
     return { error };
   }
 
   async function deleteStudent(id) {
     const { error } = await supabase.from('students').delete().eq('id', id);
-    if (!error) load();
+    if (!error) await load();
     return { error };
   }
 
-  return { students, classes, loading, error, addStudent, updateStudent, deleteStudent, reload: load };
+  async function addClass(name, monthly_fee) {
+    const { error } = await supabase.from('classes').insert({ name, monthly_fee, academy_id: academy.id });
+    if (!error) await load();
+    return { error };
+  }
+
+  return { students, classes, loading, addStudent, updateStudent, deleteStudent, addClass, reload: load };
 }

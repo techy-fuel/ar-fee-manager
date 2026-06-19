@@ -5,28 +5,87 @@ import { Badge } from '../components/Badge.jsx';
 import { Input } from '../components/Input.jsx';
 import { Select } from '../components/Select.jsx';
 import { Icon } from '../components/Icon.jsx';
-import { students as mockStudents } from '../data/mockData.js';
+import { useStudents } from '../hooks/useStudents.js';
+import { usePayments } from '../hooks/usePayments.js';
+import { fmtRs } from '../data/mockData.js';
+
+function genMonths() {
+  return Array.from({ length: 12 }, (_, i) => {
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() - i);
+    const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+    const label = d.toLocaleString('en', { month: 'long', year: 'numeric' });
+    return { value, label };
+  });
+}
+
+const METHOD_OPTIONS = [
+  { label: 'Cash',          value: 'cash' },
+  { label: 'Bank Transfer', value: 'bank_transfer' },
+  { label: 'JazzCash',      value: 'jazzcash' },
+  { label: 'EasyPaisa',     value: 'easypaisa' },
+];
+
+const EMPTY_FORM = {
+  student_id: '', transaction_id: '', amount: '',
+  fee_month: '', payment_date: new Date().toISOString().slice(0, 10), method: 'cash',
+};
 
 export function FeeCollection({ isMobile }) {
-  const studentList = mockStudents;
+  const { students } = useStudents();
+  const { recordPayment } = usePayments();
 
-  const [drag, setDrag] = useState(false);
+  const [drag, setDrag]     = useState(false);
   const [uploaded, setUploaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [form, setForm] = useState({
-    studentId: '', transactionId: '', amount: '', feeMonth: '', paymentDate: '', method: 'cash',
-  });
+  const [error, setError]   = useState('');
+  const [form, setForm]     = useState(EMPTY_FORM);
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
 
-  function handleSubmit() {
+  const months = genMonths();
+
+  const studentOptions = [
+    { label: 'Select student', value: '' },
+    ...students.map(s => ({
+      label: `${s.name}${s.class?.name ? ' — ' + s.class.name : ''}`,
+      value: s.id,
+    })),
+  ];
+
+  const monthOptions = [
+    { label: 'Select fee month', value: '' },
+    ...months,
+  ];
+
+  async function handleSubmit() {
+    if (!form.student_id) { setError('Please select a student.'); return; }
+    if (!form.amount || isNaN(Number(form.amount))) { setError('Enter a valid amount.'); return; }
+    if (!form.fee_month) { setError('Select a fee month.'); return; }
+    if (!form.payment_date) { setError('Enter a payment date.'); return; }
+
     setSaving(true);
-    setTimeout(() => {
-      setSaving(false);
-      setSuccess(true);
-      setForm({ studentId: '', transactionId: '', amount: '', feeMonth: '', paymentDate: '', method: 'cash' });
-    }, 800);
+    setError('');
+    setSuccess(false);
+
+    const { error: err } = await recordPayment({
+      student_id:     form.student_id,
+      amount:         Number(form.amount),
+      fee_month:      form.fee_month,
+      payment_date:   form.payment_date,
+      method:         form.method,
+      transaction_id: form.transaction_id || null,
+      status:         'paid',
+    });
+
+    setSaving(false);
+    if (err) { setError(err.message || 'Failed to record payment.'); return; }
+    setSuccess(true);
+    setForm({ ...EMPTY_FORM, payment_date: new Date().toISOString().slice(0, 10) });
+    setUploaded(false);
+    setTimeout(() => setSuccess(false), 4000);
   }
 
   const UploadArea = () => (
@@ -51,8 +110,8 @@ export function FeeCollection({ isMobile }) {
       </div>
       {uploaded ? (
         <>
-          <div style={{ fontWeight: 700, color: 'var(--text-strong)' }}>jazzcash_receipt.png</div>
-          <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--green-600)', marginTop: 4, fontWeight: 600 }}>Uploaded · OCR scan complete</div>
+          <div style={{ fontWeight: 700, color: 'var(--text-strong)' }}>receipt.png</div>
+          <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--green-600)', marginTop: 4, fontWeight: 600 }}>Uploaded · Click form to fill manually</div>
         </>
       ) : (
         <>
@@ -63,44 +122,27 @@ export function FeeCollection({ isMobile }) {
     </div>
   );
 
-  const OcrAlert = () => uploaded ? (
-    <div style={{ marginTop: 14, padding: 14, borderRadius: 'var(--radius-md)', background: 'var(--blue-50)', border: '1px solid var(--blue-100)', display: 'flex', gap: 10 }}>
-      <span style={{ color: 'var(--blue-600)', marginTop: 1 }}><Icon name="sparkles" size={18} /></span>
-      <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--blue-800)' }}>
-        <b>OCR detected:</b> Transaction TXN-3B81D2 · Rs 4,000 · 11 Jul 2025 · JazzCash. Review and confirm below.
-      </div>
-    </div>
-  ) : null;
-
-  const months = ['2025-07-01','2025-08-01','2025-09-01','2025-10-01','2025-11-01','2025-12-01'].map(m => {
-    const d = new Date(m);
-    return { label: d.toLocaleString('en', { month: 'long', year: 'numeric' }), value: m };
-  });
-
   const PaymentForm = () => (
     <div style={{ display: 'grid', gap: 14 }}>
       {success && (
-        <div style={{ padding: 12, background: 'var(--green-50)', border: '1px solid var(--green-100)', borderRadius: 'var(--radius-md)', color: 'var(--green-700)', fontWeight: 600, fontSize: 'var(--fs-sm)' }}>
-          Payment recorded successfully!
+        <div style={{ padding: 12, background: 'var(--green-50)', border: '1px solid var(--green-100)', borderRadius: 'var(--radius-md)', color: 'var(--green-700)', fontWeight: 600, fontSize: 'var(--fs-sm)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Icon name="check" size={16} /> Payment recorded successfully!
         </div>
       )}
-      <Select label="Student" placeholder="Select student" value={form.studentId} onChange={set('studentId')}
-        options={['Select student', ...studentList.map(s => s.name || s)]} />
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <Input label="Transaction ID" value={form.transactionId} onChange={set('transactionId')} defaultValue={uploaded ? 'TXN-3B81D2' : ''} placeholder="TXN-…" />
-        <Input label="Amount Received" value={form.amount} onChange={set('amount')} defaultValue={uploaded ? '4000' : ''} iconLeft={<span style={{ fontWeight: 700 }}>₨</span>} />
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <Select label="Payment Method" value={form.method} onChange={set('method')}
-          options={[{label:'Cash',value:'cash'},{label:'Bank Transfer',value:'bank_transfer'},{label:'JazzCash',value:'jazzcash'},{label:'EasyPaisa',value:'easypaisa'}].map(o=>o.label)} />
-        <Input label="Payment Date" type="date" value={form.paymentDate} onChange={set('paymentDate')} defaultValue={uploaded ? '2025-07-11' : ''} iconLeft={<Icon name="calendar" size={15} />} />
-      </div>
-      <div>
-        <label style={{ display: 'block', marginBottom: 6, fontSize: 'var(--fs-sm)', fontWeight: 600, color: 'var(--text-secondary)' }}>Payment Status</label>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Badge variant="success" dot>Verified</Badge>
-          <Badge variant="warning" dot>Pending</Badge>
+      {error && (
+        <div style={{ padding: 12, background: 'var(--red-50)', border: '1px solid var(--red-200)', borderRadius: 'var(--radius-md)', color: 'var(--red-700)', fontSize: 'var(--fs-sm)' }}>
+          {error}
         </div>
+      )}
+      <Select label="Student *" value={form.student_id} onChange={set('student_id')} options={studentOptions} />
+      <Select label="Fee Month *" value={form.fee_month} onChange={set('fee_month')} options={monthOptions} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <Input label="Transaction ID" value={form.transaction_id} onChange={set('transaction_id')} placeholder="TXN-…" />
+        <Input label="Amount Received *" value={form.amount} onChange={set('amount')} placeholder="0" iconLeft={<span style={{ fontWeight: 700 }}>₨</span>} type="number" />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <Select label="Payment Method" value={form.method} onChange={set('method')} options={METHOD_OPTIONS} />
+        <Input label="Payment Date *" type="date" value={form.payment_date} onChange={set('payment_date')} iconLeft={<Icon name="calendar" size={15} />} />
       </div>
     </div>
   );
@@ -108,14 +150,13 @@ export function FeeCollection({ isMobile }) {
   if (isMobile) {
     return (
       <div style={{ padding: '16px 16px 80px' }}>
-        <Card title="Upload Screenshot" subtitle="Auto-detect via OCR" style={{ marginBottom: 14 }}>
+        <Card title="Upload Screenshot" subtitle="Attach payment proof" style={{ marginBottom: 14 }}>
           <UploadArea />
-          <OcrAlert />
         </Card>
         <Card title="Record Payment" footer={
           <div style={{ display: 'flex', gap: 10 }}>
             <Button variant="primary" fullWidth loading={saving} iconLeft={<Icon name="checkSmall" size={16} />} onClick={handleSubmit}>Confirm Payment</Button>
-            <Button variant="secondary" onClick={() => setSuccess(false)}>Cancel</Button>
+            <Button variant="secondary" onClick={() => { setForm(EMPTY_FORM); setError(''); }}>Clear</Button>
           </div>
         }>
           <PaymentForm />
@@ -127,15 +168,14 @@ export function FeeCollection({ isMobile }) {
   return (
     <div style={{ padding: 28, maxWidth: 1280, margin: '0 auto' }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <Card title="Upload Payment Screenshot" subtitle="We auto-detect transaction details with OCR">
+        <Card title="Upload Payment Screenshot" subtitle="Attach payment proof (optional)">
           <UploadArea />
-          <OcrAlert />
         </Card>
-        <Card title="Record Payment" subtitle="Confirm the detected details"
+        <Card title="Record Payment" subtitle="Enter the payment details"
           footer={
             <div style={{ display: 'flex', gap: 10 }}>
               <Button variant="primary" fullWidth loading={saving} iconLeft={<Icon name="checkSmall" size={16} />} onClick={handleSubmit}>Confirm Payment</Button>
-              <Button variant="secondary" onClick={() => setSuccess(false)}>Cancel</Button>
+              <Button variant="secondary" onClick={() => { setForm(EMPTY_FORM); setError(''); }}>Clear</Button>
             </div>
           }>
           <PaymentForm />

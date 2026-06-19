@@ -5,10 +5,9 @@ import { ProgressBar } from '../components/ProgressBar.jsx';
 import { Icon } from '../components/Icon.jsx';
 import { ExpectedVsReceived } from '../charts/ExpectedVsReceived.jsx';
 import { YearlyRevenue } from '../charts/YearlyRevenue.jsx';
-import { monthly, yearly } from '../data/mockData.js';
-
-const TOP_MONTHS    = [['September', 97], ['August', 96], ['November', 95]];
-const LOWEST_MONTHS = [['July', 82], ['June', 88], ['March', 86]];
+import { useDashboardStats } from '../hooks/usePayments.js';
+import { monthly as mockMonthly, yearly as mockYearly } from '../data/mockData.js';
+import { useApp } from '../context/AppContext.jsx';
 
 const MonthRow = ({ m, v, variant }) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0' }}>
@@ -19,6 +18,30 @@ const MonthRow = ({ m, v, variant }) => (
 );
 
 export function Reports({ isMobile }) {
+  const { academy } = useApp();
+  const { monthly: liveMonthly, loading } = useDashboardStats();
+
+  const monthly = (academy && liveMonthly?.length) ? liveMonthly : mockMonthly;
+  const yearly  = mockYearly;
+
+  // Calculate top/lowest months from real data
+  const monthRates = monthly
+    .map(m => ({
+      month: m.month,
+      rate: m.expected > 0 ? Math.round((m.received / m.expected) * 100) : 0,
+    }))
+    .filter(m => m.rate > 0);
+
+  const sorted = [...monthRates].sort((a, b) => b.rate - a.rate);
+  const topMonths    = sorted.slice(0, 3);
+  const lowestMonths = [...sorted].reverse().slice(0, 3);
+
+  const fallbackTop    = [['September', 97], ['August', 96], ['November', 95]];
+  const fallbackLowest = [['July', 82], ['June', 88], ['March', 86]];
+
+  const showTop    = topMonths.length    ? topMonths.map(m => [m.month, m.rate])    : fallbackTop;
+  const showLowest = lowestMonths.length ? lowestMonths.map(m => [m.month, m.rate]) : fallbackLowest;
+
   if (isMobile) {
     return (
       <div style={{ padding: '16px 16px 80px' }}>
@@ -30,12 +53,12 @@ export function Reports({ isMobile }) {
           <YearlyRevenue data={yearly} height={160} />
         </Card>
         <Card title="Top Months" padding="md" style={{ marginBottom: 14 }}>
-          {TOP_MONTHS.map(([m, v]) => <MonthRow key={m} m={m} v={v} variant="success" />)}
+          {showTop.map(([m, v]) => <MonthRow key={m} m={m} v={v} variant="success" />)}
         </Card>
         <Card title="Lowest Months" padding="md" style={{ marginBottom: 14 }}>
-          {LOWEST_MONTHS.map(([m, v]) => <MonthRow key={m} m={m} v={v} variant="warning" />)}
+          {showLowest.map(([m, v]) => <MonthRow key={m} m={m} v={v} variant="warning" />)}
         </Card>
-        <Card title="Collection Analytics" subtitle="Expected vs received · 2025">
+        <Card title="Collection Analytics" subtitle="Expected vs received">
           <ExpectedVsReceived data={monthly} height={200} />
         </Card>
       </div>
@@ -46,20 +69,20 @@ export function Reports({ isMobile }) {
     <div style={{ padding: 28, maxWidth: 1280, margin: '0 auto' }}>
       <div style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
         <Select fullWidth={false} options={['Monthly Report', 'Yearly Report']} style={{ width: 180 }} />
-        <Select fullWidth={false} options={['2025', '2024', '2023']} style={{ width: 120 }} />
+        <Select fullWidth={false} options={[String(new Date().getFullYear()), String(new Date().getFullYear() - 1)]} style={{ width: 120 }} />
         <Button variant="secondary" iconLeft={<Icon name="fileText" size={16} />} style={{ marginLeft: 'auto' }}>Export PDF</Button>
         <Button variant="secondary" iconLeft={<Icon name="spreadsheet" size={16} />}>Export Excel</Button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-        <Card title="Yearly Revenue" subtitle="Total fee revenue (Rs, millions)">
+        <Card title="Yearly Revenue" subtitle="Total fee revenue">
           <YearlyRevenue data={yearly} />
         </Card>
         <div style={{ display: 'grid', gap: 16 }}>
           <Card title="Top Performing Months" padding="md">
-            {TOP_MONTHS.map(([m, v]) => <MonthRow key={m} m={m} v={v} variant="success" />)}
+            {showTop.map(([m, v]) => <MonthRow key={m} m={m} v={v} variant="success" />)}
           </Card>
           <Card title="Lowest Collection Months" padding="md">
-            {LOWEST_MONTHS.map(([m, v]) => <MonthRow key={m} m={m} v={v} variant="warning" />)}
+            {showLowest.map(([m, v]) => <MonthRow key={m} m={m} v={v} variant="warning" />)}
           </Card>
         </div>
       </div>
