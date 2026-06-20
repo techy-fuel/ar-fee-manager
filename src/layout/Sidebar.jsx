@@ -31,12 +31,9 @@ export function Sidebar({ active, onNavigate }) {
       </div>
 
       <nav style={{ padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
-        {NAV.map(n => {
-          const on = active === n.key;
-          return (
-            <NavItem key={n.key} {...n} active={on} onClick={() => onNavigate(n.key)} />
-          );
-        })}
+        {NAV.map(n => (
+          <NavItem key={n.key} label={n.label} icon={n.icon} active={active === n.key} onClick={() => onNavigate(n.key)} />
+        ))}
       </nav>
 
       <div style={{ margin: 12, padding: 14, borderRadius: 'var(--radius-lg)', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
@@ -59,7 +56,7 @@ export function Sidebar({ active, onNavigate }) {
   );
 }
 
-function NavItem({ key: _k, label, icon, active, onClick }) {
+function NavItem({ label, icon, active, onClick }) {
   return (
     <button
       onClick={onClick}

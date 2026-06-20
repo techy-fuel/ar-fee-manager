@@ -39,8 +39,8 @@ export function Reports({ isMobile }) {
   const fallbackTop    = [['September', 97], ['August', 96], ['November', 95]];
   const fallbackLowest = [['July', 82], ['June', 88], ['March', 86]];
 
-  const showTop    = topMonths.length    ? topMonths.map(m => [m.month, m.rate])    : fallbackTop;
-  const showLowest = lowestMonths.length ? lowestMonths.map(m => [m.month, m.rate]) : fallbackLowest;
+  const showTop    = (topMonths.length    ? topMonths.map(m => [m.month, m.rate])    : fallbackTop).slice(0, 3);
+  const showLowest = (lowestMonths.length ? lowestMonths.map(m => [m.month, m.rate]) : fallbackLowest).slice(0, 3);
 
   if (isMobile) {
     return (
@@ -53,10 +53,10 @@ export function Reports({ isMobile }) {
           <YearlyRevenue data={yearly} height={160} />
         </Card>
         <Card title="Top Months" padding="md" style={{ marginBottom: 14 }}>
-          {showTop.map(([m, v]) => <MonthRow key={m} m={m} v={v} variant="success" />)}
+          {showTop.map(([m, v], i) => <MonthRow key={i} m={m} v={v} variant="success" />)}
         </Card>
         <Card title="Lowest Months" padding="md" style={{ marginBottom: 14 }}>
-          {showLowest.map(([m, v]) => <MonthRow key={m} m={m} v={v} variant="warning" />)}
+          {showLowest.map(([m, v], i) => <MonthRow key={i} m={m} v={v} variant="warning" />)}
         </Card>
         <Card title="Collection Analytics" subtitle="Expected vs received">
           <ExpectedVsReceived data={monthly} height={200} />
@@ -79,10 +79,10 @@ export function Reports({ isMobile }) {
         </Card>
         <div style={{ display: 'grid', gap: 16 }}>
           <Card title="Top Performing Months" padding="md">
-            {showTop.map(([m, v]) => <MonthRow key={m} m={m} v={v} variant="success" />)}
+            {showTop.map(([m, v], i) => <MonthRow key={i} m={m} v={v} variant="success" />)}
           </Card>
           <Card title="Lowest Collection Months" padding="md">
-            {showLowest.map(([m, v]) => <MonthRow key={m} m={m} v={v} variant="warning" />)}
+            {showLowest.map(([m, v], i) => <MonthRow key={i} m={m} v={v} variant="warning" />)}
           </Card>
         </div>
       </div>

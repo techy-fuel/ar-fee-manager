@@ -12,7 +12,7 @@ export function usePayments() {
     setLoading(true);
     const { data } = await supabase
       .from('payments')
-      .select('*, student:students(name, student_id, class:classes(name))')
+      .select('*, student:students(name, student_id, parent_phone, class:classes(name))')
       .eq('academy_id', academy.id)
       .order('created_at', { ascending: false });
     setPayments(data ?? []);

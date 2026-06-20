@@ -49,6 +49,7 @@ export function useReminders() {
   async function sendReminder(studentId, amount) {
     const { error } = await supabase.from('reminders').insert({
       academy_id: academy.id, student_id: studentId, amount, status: 'sent',
+      sent_at: new Date().toISOString(),
     });
     if (!error) await load();
     return { error };
@@ -56,11 +57,13 @@ export function useReminders() {
 
   async function sendAll() {
     if (!pending.length) return;
+    const now = new Date().toISOString();
     const rows = pending.map(s => ({
       academy_id: academy.id,
       student_id: s.id,
       amount: s.class?.monthly_fee ?? 0,
       status: 'sent',
+      sent_at: now,
     }));
     const { error } = await supabase.from('reminders').insert(rows);
     if (!error) await load();
