@@ -29,6 +29,7 @@ export function useStudents() {
   useEffect(() => { load(); }, [load]);
 
   async function addStudent(data) {
+    if (!academy) return { error: { message: 'Database not connected. Reload the page.' } };
     const { error } = await supabase.from('students').insert({ ...data, academy_id: academy.id });
     if (!error) await load();
     return { error };
@@ -47,10 +48,17 @@ export function useStudents() {
   }
 
   async function addClass(name, monthly_fee) {
-    const { error } = await supabase.from('classes').insert({ name, monthly_fee, academy_id: academy.id });
+    if (!academy) return { error: { message: 'Database not connected. Reload the page.' } };
+    const { error } = await supabase.from('classes').insert({ name, monthly_fee: Number(monthly_fee) || 0, academy_id: academy.id });
     if (!error) await load();
     return { error };
   }
 
-  return { students, classes, loading, addStudent, updateStudent, deleteStudent, addClass, reload: load };
+  async function deleteClass(id) {
+    const { error } = await supabase.from('classes').delete().eq('id', id);
+    if (!error) await load();
+    return { error };
+  }
+
+  return { students, classes, loading, addStudent, updateStudent, deleteStudent, addClass, deleteClass, reload: load };
 }
