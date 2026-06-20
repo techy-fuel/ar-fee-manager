@@ -138,7 +138,7 @@ export function FeeCollection({ isMobile }) {
       <Select label="Fee Month *" value={form.fee_month} onChange={set('fee_month')} options={monthOptions} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <Input label="Transaction ID" value={form.transaction_id} onChange={set('transaction_id')} placeholder="TXN-…" />
-        <Input label="Amount Received *" value={form.amount} onChange={set('amount')} placeholder="0" iconLeft={<span style={{ fontWeight: 700 }}>₨</span>} type="number" />
+        <Input label="Amount Received *" value={form.amount} onChange={set('amount')} placeholder="e.g. 3500" iconLeft={<span style={{ fontWeight: 700 }}>₨</span>} inputMode="numeric" />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <Select label="Payment Method" value={form.method} onChange={set('method')} options={METHOD_OPTIONS} />
