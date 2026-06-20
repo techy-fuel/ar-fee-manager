@@ -2,7 +2,7 @@ const BLUE = '#248dce', BLUE_LIGHT = '#a9d2ee';
 
 export function YearlyRevenue({ data, height = 200 }) {
   const W = 360, H = height, padB = 26, padT = 16, padL = 8, padR = 8;
-  const max = Math.max(...data.map(d => d.revenue)) * 1.12;
+  const max = (Math.max(0, ...data.map(d => d.revenue)) || 1) * 1.12;
   const cw = (W - padL - padR) / data.length;
   const bw = cw * 0.5;
   const y = v => padT + (H - padT - padB) * (1 - v / max);

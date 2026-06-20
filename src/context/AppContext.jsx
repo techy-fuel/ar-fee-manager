@@ -4,12 +4,20 @@ import { supabase } from '../lib/supabase.js';
 const AppContext = createContext(null);
 
 async function initAcademy() {
-  const { data: existing } = await supabase.from('academies').select('*').limit(1).maybeSingle();
-  if (existing) return existing;
-  const { data: created } = await supabase
+  // Always pick the oldest academy so the same one is used across sessions
+  const { data: existing, error: selErr } = await supabase
+    .from('academies')
+    .select('*')
+    .order('created_at', { ascending: true })
+    .limit(1);
+  if (selErr) console.error('initAcademy select error:', selErr.message);
+  if (existing && existing.length) return existing[0];
+
+  const { data: created, error: insErr } = await supabase
     .from('academies')
     .insert({ name: 'Al Rehman Academy', email: 'admin@alrehman.edu.pk', phone: '+92 42 35551234' })
     .select().single();
+  if (insErr) console.error('initAcademy insert error:', insErr.message);
   return created;
 }
 

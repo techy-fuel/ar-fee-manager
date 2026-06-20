@@ -2,7 +2,7 @@ const BLUE = '#248dce', BLUE_LIGHT = '#a9d2ee', GRID = '#e3e9f0';
 
 export function ExpectedVsReceived({ data, height = 240 }) {
   const W = 720, H = height, padL = 40, padB = 28, padT = 12, padR = 8;
-  const max = Math.max(...data.map(d => d.expected)) * 1.1;
+  const max = (Math.max(0, ...data.map(d => d.expected)) || 1) * 1.1;
   const cw = (W - padL - padR) / data.length;
   const bw = cw * 0.28;
   const y = v => padT + (H - padT - padB) * (1 - v / max);
