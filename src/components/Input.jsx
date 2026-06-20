@@ -1,4 +1,4 @@
-import { useState, useId } from 'react';
+import { useState, useRef, useId } from 'react';
 
 export function Input({
   label = null,
@@ -14,6 +14,7 @@ export function Input({
   ...rest
 }) {
   const [focus, setFocus] = useState(false);
+  const inputRef = useRef(null);
   const sizes = {
     sm: { height: 34, font: 'var(--fs-sm)',  pad: 10 },
     md: { height: 40, font: 'var(--fs-body)', pad: 12 },
@@ -31,27 +32,30 @@ export function Input({
           {label}
         </label>
       )}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        height: s.height, padding: `0 ${s.pad}px`,
-        background: 'var(--color-surface)', border: `1px solid ${borderColor}`,
-        borderRadius: 'var(--radius-md)',
-        boxShadow: focus ? (error ? 'var(--ring-danger)' : 'var(--ring-primary)') : 'var(--shadow-xs)',
-        transition: 'border-color var(--dur-fast), box-shadow var(--dur-fast)',
-      }}>
-        {iconLeft && <span style={{ display: 'inline-flex', color: 'var(--text-faint)', flex: 'none' }}>{iconLeft}</span>}
+      <div
+        onClick={() => inputRef.current?.focus()}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          height: s.height, padding: `0 ${s.pad}px`,
+          background: 'var(--color-surface)', border: `1px solid ${borderColor}`,
+          borderRadius: 'var(--radius-md)', cursor: 'text',
+          boxShadow: focus ? (error ? 'var(--ring-danger)' : 'var(--ring-primary)') : 'var(--shadow-xs)',
+          transition: 'border-color var(--dur-fast), box-shadow var(--dur-fast)',
+        }}>
+        {iconLeft && <span style={{ display: 'inline-flex', color: 'var(--text-faint)', flex: 'none', pointerEvents: 'none' }}>{iconLeft}</span>}
         <input
+          ref={inputRef}
           id={fieldId}
           onFocus={e => { setFocus(true); rest.onFocus && rest.onFocus(e); }}
           onBlur={e => { setFocus(false); rest.onBlur && rest.onBlur(e); }}
           style={{
             flex: 1, minWidth: 0, height: '100%', border: 'none', outline: 'none',
             background: 'transparent', fontFamily: 'var(--font-sans)', fontSize: s.font,
-            color: 'var(--text-primary)', ...inputStyle,
+            color: 'var(--text-primary)', cursor: 'text', ...inputStyle,
           }}
           {...rest}
         />
-        {iconRight && <span style={{ display: 'inline-flex', color: 'var(--text-faint)', flex: 'none' }}>{iconRight}</span>}
+        {iconRight && <span style={{ display: 'inline-flex', color: 'var(--text-faint)', flex: 'none', pointerEvents: 'none' }}>{iconRight}</span>}
       </div>
       {(hint || error) && (
         <p style={{ margin: '6px 0 0', fontSize: 'var(--fs-xs)', color: error ? 'var(--status-danger-fg)' : 'var(--text-muted)' }}>
