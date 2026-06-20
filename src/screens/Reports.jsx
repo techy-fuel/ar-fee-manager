@@ -6,8 +6,10 @@ import { Icon } from '../components/Icon.jsx';
 import { ExpectedVsReceived } from '../charts/ExpectedVsReceived.jsx';
 import { YearlyRevenue } from '../charts/YearlyRevenue.jsx';
 import { useDashboardStats } from '../hooks/usePayments.js';
-import { monthly as mockMonthly, yearly as mockYearly } from '../data/mockData.js';
-import { useApp } from '../context/AppContext.jsx';
+
+const EMPTY_MONTHS = Array.from({ length: 12 }, (_, i) => ({
+  m: new Date(2025, i).toLocaleString('en', { month: 'short' }), expected: 0, received: 0,
+}));
 
 const MonthRow = ({ m, v, variant }) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0' }}>
@@ -18,16 +20,14 @@ const MonthRow = ({ m, v, variant }) => (
 );
 
 export function Reports({ isMobile }) {
-  const { academy } = useApp();
-  const { monthly: liveMonthly, loading } = useDashboardStats();
+  const { monthly: liveMonthly, yearly: liveYearly, loading } = useDashboardStats();
 
-  const monthly = (academy && liveMonthly?.length) ? liveMonthly : mockMonthly;
-  const yearly  = mockYearly;
+  const monthly = liveMonthly?.length ? liveMonthly : EMPTY_MONTHS;
+  const yearly  = liveYearly?.length  ? liveYearly  : [{ y: String(new Date().getFullYear()), revenue: 0 }];
 
-  // Calculate top/lowest months from real data
   const monthRates = monthly
     .map(m => ({
-      month: m.month,
+      month: m.m,
       rate: m.expected > 0 ? Math.round((m.received / m.expected) * 100) : 0,
     }))
     .filter(m => m.rate > 0);
@@ -36,11 +36,8 @@ export function Reports({ isMobile }) {
   const topMonths    = sorted.slice(0, 3);
   const lowestMonths = [...sorted].reverse().slice(0, 3);
 
-  const fallbackTop    = [['September', 97], ['August', 96], ['November', 95]];
-  const fallbackLowest = [['July', 82], ['June', 88], ['March', 86]];
-
-  const showTop    = (topMonths.length    ? topMonths.map(m => [m.month, m.rate])    : fallbackTop).slice(0, 3);
-  const showLowest = (lowestMonths.length ? lowestMonths.map(m => [m.month, m.rate]) : fallbackLowest).slice(0, 3);
+  const showTop    = topMonths.length    ? topMonths.map(m    => [m.month, m.rate])    : [];
+  const showLowest = lowestMonths.length ? lowestMonths.map(m => [m.month, m.rate])    : [];
 
   if (isMobile) {
     return (
@@ -52,12 +49,23 @@ export function Reports({ isMobile }) {
         <Card title="Yearly Revenue" subtitle="Rs in millions" style={{ marginBottom: 14 }}>
           <YearlyRevenue data={yearly} height={160} />
         </Card>
-        <Card title="Top Months" padding="md" style={{ marginBottom: 14 }}>
-          {showTop.map(([m, v], i) => <MonthRow key={i} m={m} v={v} variant="success" />)}
-        </Card>
-        <Card title="Lowest Months" padding="md" style={{ marginBottom: 14 }}>
-          {showLowest.map(([m, v], i) => <MonthRow key={i} m={m} v={v} variant="warning" />)}
-        </Card>
+        {showTop.length > 0 && (
+          <Card title="Top Months" padding="md" style={{ marginBottom: 14 }}>
+            {showTop.map(([m, v], i) => <MonthRow key={i} m={m} v={v} variant="success" />)}
+          </Card>
+        )}
+        {showLowest.length > 0 && (
+          <Card title="Lowest Months" padding="md" style={{ marginBottom: 14 }}>
+            {showLowest.map(([m, v], i) => <MonthRow key={i} m={m} v={v} variant="warning" />)}
+          </Card>
+        )}
+        {showTop.length === 0 && !loading && (
+          <Card padding="md" style={{ marginBottom: 14 }}>
+            <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--fs-sm)', padding: '12px 0' }}>
+              No collection data yet. Record payments to see analytics.
+            </div>
+          </Card>
+        )}
         <Card title="Collection Analytics" subtitle="Expected vs received">
           <ExpectedVsReceived data={monthly} height={200} />
         </Card>
@@ -74,15 +82,19 @@ export function Reports({ isMobile }) {
         <Button variant="secondary" iconLeft={<Icon name="spreadsheet" size={16} />}>Export Excel</Button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-        <Card title="Yearly Revenue" subtitle="Total fee revenue">
+        <Card title="Yearly Revenue" subtitle="Rs in millions">
           <YearlyRevenue data={yearly} />
         </Card>
         <div style={{ display: 'grid', gap: 16 }}>
           <Card title="Top Performing Months" padding="md">
-            {showTop.map(([m, v], i) => <MonthRow key={i} m={m} v={v} variant="success" />)}
+            {showTop.length > 0
+              ? showTop.map(([m, v], i) => <MonthRow key={i} m={m} v={v} variant="success" />)
+              : <div style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-sm)', padding: '12px 0', textAlign: 'center' }}>No data yet</div>}
           </Card>
           <Card title="Lowest Collection Months" padding="md">
-            {showLowest.map(([m, v], i) => <MonthRow key={i} m={m} v={v} variant="warning" />)}
+            {showLowest.length > 0
+              ? showLowest.map(([m, v], i) => <MonthRow key={i} m={m} v={v} variant="warning" />)
+              : <div style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-sm)', padding: '12px 0', textAlign: 'center' }}>No data yet</div>}
           </Card>
         </div>
       </div>

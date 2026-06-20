@@ -6,10 +6,13 @@ import { Icon } from '../components/Icon.jsx';
 import { ExpectedVsReceived } from '../charts/ExpectedVsReceived.jsx';
 import { CollectionTrend } from '../charts/CollectionTrend.jsx';
 import { DonutGauge } from '../charts/DonutGauge.jsx';
-import { stats as mockStats, monthly as mockMonthly, transactions, fmtRs } from '../data/mockData.js';
-import { useDashboardStats } from '../hooks/usePayments.js';
-import { usePayments } from '../hooks/usePayments.js';
-import { useApp } from '../context/AppContext.jsx';
+import { fmtRs } from '../data/mockData.js';
+import { useDashboardStats, usePayments } from '../hooks/usePayments.js';
+
+const ZERO = { totalStudents: 0, collected: 0, expected: 0, pending: 0, rate: 0 };
+const EMPTY_MONTHS = Array.from({ length: 12 }, (_, i) => ({
+  m: new Date(2025, i).toLocaleString('en', { month: 'short' }), expected: 0, received: 0,
+}));
 
 const Legend = () => (
   <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
@@ -31,31 +34,31 @@ const KV = ({ label, value, color }) => (
 );
 
 export function Dashboard({ isMobile, onNavigate }) {
-  const { academy } = useApp();
-  const { stats: liveStats, monthly: liveMonthly, loading: statsLoading } = useDashboardStats();
+  const { stats: liveStats, monthly: liveMonthly, loading } = useDashboardStats();
   const { payments } = usePayments();
 
-  const s       = (academy && liveStats) ? liveStats : mockStats;
-  const monthly = (academy && liveMonthly?.length) ? liveMonthly : mockMonthly;
-  const recentPayments = academy && payments.length
-    ? payments.slice(0, 5).map(p => ({
-        id: p.id,
-        student: p.student?.name || '—',
-        cls: p.student?.class?.name || '—',
-        method: p.method?.replace('_', ' ') || '—',
-        amount: p.amount,
-        date: new Date(p.payment_date).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' }),
-      }))
-    : transactions.slice(0, 5);
+  const s       = liveStats || ZERO;
+  const monthly = liveMonthly?.length ? liveMonthly : EMPTY_MONTHS;
+
+  const recentPayments = payments.slice(0, 5).map(p => ({
+    id: p.id,
+    student: p.student?.name || '—',
+    cls: p.student?.class?.name || '—',
+    method: p.method?.replace('_', ' ') || '—',
+    amount: p.amount,
+    date: p.payment_date
+      ? new Date(p.payment_date).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })
+      : '—',
+  }));
 
   if (isMobile) {
     return (
       <div style={{ padding: '16px 16px 80px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
-          <StatCard label="Total Students" value={s.totalStudents.toLocaleString()} tone="brand" icon={<Icon name="users" size={18} />} style={{ padding: 14 }} />
-          <StatCard label="Collection %" value={s.rate + '%'} tone="brand" icon={<Icon name="trending" size={18} />} progress={s.rate} progressVariant="success" style={{ padding: 14 }} />
-          <StatCard label="Collected" value={fmtRs(s.collected)} tone="success" icon={<Icon name="wallet" size={18} />} style={{ padding: 14 }} />
-          <StatCard label="Pending" value={fmtRs(s.pending)} tone="warning" icon={<Icon name="clock" size={18} />} style={{ padding: 14 }} />
+          <StatCard label="Total Students" value={loading ? '…' : s.totalStudents.toLocaleString()} tone="brand" icon={<Icon name="users" size={18} />} style={{ padding: 14 }} />
+          <StatCard label="Collection %" value={loading ? '…' : s.rate + '%'} tone="brand" icon={<Icon name="trending" size={18} />} progress={s.rate} progressVariant="success" style={{ padding: 14 }} />
+          <StatCard label="Collected" value={loading ? '…' : fmtRs(s.collected)} tone="success" icon={<Icon name="wallet" size={18} />} style={{ padding: 14 }} />
+          <StatCard label="Pending" value={loading ? '…' : fmtRs(s.pending)} tone="warning" icon={<Icon name="clock" size={18} />} style={{ padding: 14 }} />
         </div>
         <Card title="Collection Rate" style={{ marginBottom: 14 }}>
           <div style={{ display: 'grid', placeItems: 'center', padding: '6px 0 10px' }}>
@@ -67,7 +70,11 @@ export function Dashboard({ isMobile, onNavigate }) {
           </div>
         </Card>
         <Card title="Recent Payments" padding="none" style={{ marginBottom: 14 }}>
-          {recentPayments.map((t, i) => (
+          {recentPayments.length === 0 ? (
+            <div style={{ padding: '24px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--fs-sm)' }}>
+              No payments yet.
+            </div>
+          ) : recentPayments.map((t, i) => (
             <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderTop: i ? '1px solid var(--border-subtle)' : 'none' }}>
               <Avatar name={t.student} size="sm" />
               <div style={{ minWidth: 0 }}>
@@ -91,11 +98,11 @@ export function Dashboard({ isMobile, onNavigate }) {
   return (
     <div style={{ padding: 28, maxWidth: 1280, margin: '0 auto' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 16, marginBottom: 22 }}>
-        <StatCard label="Total Students" value={s.totalStudents.toLocaleString()} tone="brand" icon={<Icon name="users" size={22} />} delta="4.6%" deltaDirection="up" />
-        <StatCard label="Expected Fee" value={fmtRs(s.expected)} tone="navy" icon={<Icon name="calendar" size={22} />} footnote={new Date().toLocaleString('en', { month: 'long', year: 'numeric' })} />
-        <StatCard label="Collected Fee" value={fmtRs(s.collected)} tone="success" icon={<Icon name="wallet" size={22} />} delta="8.2%" deltaDirection="up" />
-        <StatCard label="Pending Fee" value={fmtRs(s.pending)} tone="warning" icon={<Icon name="clock" size={22} />} delta="3.1%" deltaDirection="down" />
-        <StatCard label="Collection %" value={s.rate + '%'} tone="brand" icon={<Icon name="trending" size={22} />} progress={s.rate} progressVariant="success" />
+        <StatCard label="Total Students" value={loading ? '…' : s.totalStudents.toLocaleString()} tone="brand" icon={<Icon name="users" size={22} />} />
+        <StatCard label="Expected Fee" value={loading ? '…' : fmtRs(s.expected)} tone="navy" icon={<Icon name="calendar" size={22} />} footnote={new Date().toLocaleString('en', { month: 'long', year: 'numeric' })} />
+        <StatCard label="Collected Fee" value={loading ? '…' : fmtRs(s.collected)} tone="success" icon={<Icon name="wallet" size={22} />} />
+        <StatCard label="Pending Fee" value={loading ? '…' : fmtRs(s.pending)} tone="warning" icon={<Icon name="clock" size={22} />} />
+        <StatCard label="Collection %" value={loading ? '…' : s.rate + '%'} tone="brand" icon={<Icon name="trending" size={22} />} progress={s.rate} progressVariant="success" />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1.7fr 1fr', gap: 16, marginBottom: 16 }}>
         <Card title="Expected vs Received" subtitle={`Monthly fee collection · ${new Date().getFullYear()}`} actions={<Legend />}>
@@ -117,7 +124,14 @@ export function Dashboard({ isMobile, onNavigate }) {
         </Card>
         <Card title="Recent Payments" subtitle="Latest verified transactions" padding="none"
           actions={<Button size="sm" variant="ghost" iconRight={<Icon name="chevronRight" size={15} />} onClick={() => onNavigate?.('fees')}>View all</Button>}>
-          {recentPayments.map((t, i) => (
+          {recentPayments.length === 0 ? (
+            <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--fs-sm)' }}>
+              No payments yet.{' '}
+              <span style={{ color: 'var(--blue-600)', cursor: 'pointer' }} onClick={() => onNavigate?.('fees')}>
+                Record first payment →
+              </span>
+            </div>
+          ) : recentPayments.map((t, i) => (
             <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px', borderTop: i ? '1px solid var(--border-subtle)' : 'none' }}>
               <Avatar name={t.student} size="sm" />
               <div style={{ minWidth: 0 }}>
