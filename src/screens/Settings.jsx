@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card } from '../components/Card.jsx';
 import { Button } from '../components/Button.jsx';
 import { Badge } from '../components/Badge.jsx';
@@ -13,6 +13,8 @@ export function Settings({ isMobile }) {
   const [saved, setSaved]   = useState(false);
   const [error, setError]   = useState('');
   const [form, setForm]     = useState({ name: '', email: '', phone: '' });
+  const fileRef = useRef(null);
+  const [logoSaving, setLogoSaving] = useState(false);
 
   useEffect(() => {
     if (academy) {
@@ -39,6 +41,28 @@ export function Settings({ isMobile }) {
     setTimeout(() => setSaved(false), 3000);
   }
 
+  function handleLogo(file) {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { setError('Please choose an image file.'); return; }
+    if (file.size > 600 * 1024) { setError('Logo too large — please use an image under 600 KB.'); return; }
+    setError('');
+    const reader = new FileReader();
+    reader.onload = async () => {
+      setLogoSaving(true);
+      const { data, error: err } = await supabase
+        .from('academies')
+        .update({ logo_url: reader.result })
+        .eq('id', academy.id)
+        .select().single();
+      setLogoSaving(false);
+      if (err) { setError(err.message || 'Failed to save logo.'); return; }
+      setAcademy(data);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    };
+    reader.readAsDataURL(file);
+  }
+
   const content = (
     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
       <Card title="Academy Information" footer={
@@ -60,11 +84,15 @@ export function Settings({ isMobile }) {
           <div style={{
             width: 96, height: 96, borderRadius: 'var(--radius-lg)',
             background: 'var(--slate-50)', border: '1px solid var(--border-subtle)',
-            display: 'grid', placeItems: 'center', padding: 12,
+            display: 'grid', placeItems: 'center', padding: 12, overflow: 'hidden',
           }}>
-            <img src="/assets/logo-mark.svg" alt="" style={{ maxHeight: '100%' }} onError={e => e.target.style.display='none'} />
+            <img src={academy?.logo_url || '/assets/logo-mark.svg'} alt="" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} onError={e => e.target.style.display='none'} />
           </div>
-          <Button variant="secondary" iconLeft={<Icon name="upload" size={16} />}>Upload new logo</Button>
+          <div>
+            <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handleLogo(e.target.files?.[0])} />
+            <Button variant="secondary" loading={logoSaving} iconLeft={<Icon name="upload" size={16} />} onClick={() => fileRef.current?.click()}>Upload new logo</Button>
+            <p style={{ margin: '8px 0 0', fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>PNG or JPG, up to 600 KB</p>
+          </div>
         </div>
       </Card>
 
@@ -86,26 +114,6 @@ export function Settings({ isMobile }) {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {['Bank Transfer', 'JazzCash', 'EasyPaisa', 'Cash'].map(m => (
             <Badge key={m} variant="brand">{m}</Badge>
-          ))}
-        </div>
-      </Card>
-
-      <Card title="User Roles & Permissions" style={isMobile ? {} : { gridColumn: '1 / -1' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 12 }}>
-          {[
-            { role: 'Administrator', perms: ['Full access', 'Manage users', 'All reports'], badge: 'brand' },
-            { role: 'Fee Collector',  perms: ['Record payments', 'View students', 'Generate receipts'], badge: 'info' },
-            { role: 'Viewer',         perms: ['View dashboard', 'View reports'], badge: 'neutral' },
-          ].map(({ role, perms, badge }) => (
-            <div key={role} style={{ padding: 14, border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', background: 'var(--slate-50)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <span style={{ fontWeight: 700, color: 'var(--text-strong)', fontSize: 'var(--fs-sm)' }}>{role}</span>
-                <Badge variant={badge} size="sm">{badge === 'brand' ? 'Admin' : role === 'Fee Collector' ? 'Staff' : 'Read-only'}</Badge>
-              </div>
-              <ul style={{ margin: 0, padding: '0 0 0 16px', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', lineHeight: 1.8 }}>
-                {perms.map(p => <li key={p}>{p}</li>)}
-              </ul>
-            </div>
           ))}
         </div>
       </Card>

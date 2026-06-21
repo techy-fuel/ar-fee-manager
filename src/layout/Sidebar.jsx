@@ -1,4 +1,3 @@
-import { Avatar } from '../components/Avatar.jsx';
 import { Icon } from '../components/Icon.jsx';
 import { useApp } from '../context/AppContext.jsx';
 
@@ -23,7 +22,7 @@ export function Sidebar({ active, onNavigate }) {
       height: '100%', display: 'flex', flexDirection: 'column',
     }}>
       <div style={{ padding: '20px 20px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <img src="/assets/logo-mark-white.svg" alt="" style={{ height: 36 }} onError={e => e.target.style.display='none'} />
+        <img src={academy?.logo_url || '/assets/logo-mark-white.svg'} alt="" style={{ height: 36, maxWidth: 48, objectFit: 'contain', borderRadius: academy?.logo_url ? 6 : 0 }} onError={e => e.target.style.display='none'} />
         <div style={{ lineHeight: 1.1, minWidth: 0 }}>
           <div style={{ color: '#fff', fontWeight: 800, fontSize: 15, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 160 }}>{academyName}</div>
           <div style={{ color: 'var(--text-on-dark-muted)', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Fee Manager</div>
@@ -35,23 +34,6 @@ export function Sidebar({ active, onNavigate }) {
           <NavItem key={n.key} label={n.label} icon={n.icon} active={active === n.key} onClick={() => onNavigate(n.key)} />
         ))}
       </nav>
-
-      <div style={{ margin: 12, padding: 14, borderRadius: 'var(--radius-lg)', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Avatar name="Administrator" size="sm" />
-          <div style={{ minWidth: 0 }}>
-            <div style={{ color: '#fff', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Administrator</div>
-            <div style={{ color: 'var(--text-on-dark-muted)', fontSize: 11 }}>Admin</div>
-          </div>
-          <button
-            onClick={() => onNavigate('settings')}
-            style={{ marginLeft: 'auto', color: 'var(--text-on-dark-muted)', display: 'inline-flex', background: 'none', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 4 }}
-            title="Settings"
-          >
-            <Icon name="settings" size={16} />
-          </button>
-        </div>
-      </div>
     </aside>
   );
 }
