@@ -60,8 +60,11 @@ function AppInner() {
   const [collectStudentId, setCollectStudentId] = useState('');
   const isMobile = useIsMobile();
 
+  const [searchQuery, setSearchQuery] = useState('');
+
   const navigate = key => {
     setPage(key);
+    setSearchQuery('');
     if (MOBILE_MAIN_TABS.includes(key)) setMobileTab(key);
     else setMobileTab('more');
   };
@@ -78,6 +81,7 @@ function AppInner() {
     onCollectFee: collectFeeFor,
     collectStudentId,
     setCollectStudentId,
+    searchQuery,
   };
 
   if (isMobile) {
@@ -103,7 +107,7 @@ function AppInner() {
     <div style={{ display: 'flex', height: '100vh', background: 'var(--color-bg)' }}>
       <Sidebar active={page} onNavigate={navigate} />
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
-        <Topbar title={title} subtitle={subtitle} action={action} />
+        <Topbar title={title} subtitle={subtitle} action={action} searchQuery={searchQuery} onSearch={setSearchQuery} />
         <div style={{ flex: 1, overflowY: 'auto' }}>
           <Screen {...sharedProps} />
         </div>

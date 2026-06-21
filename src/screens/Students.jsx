@@ -23,7 +23,7 @@ const IconBtn = ({ name, onClick, title, color }) => (
 
 const EMPTY_FORM = { name: '', parent_name: '', parent_phone: '', class_id: '', student_id: '', enrollment_date: '' };
 
-export function Students({ isMobile, addStudentOpen, setAddStudentOpen, onCollectFee }) {
+export function Students({ isMobile, addStudentOpen, setAddStudentOpen, onCollectFee, searchQuery = '' }) {
   const { students, classes, loading, addStudent, updateStudent, deleteStudent, addClass, updateClass, deleteClass, bulkAddStudents } = useStudents();
   const { error: dbError, retry } = useApp();
 
@@ -186,8 +186,9 @@ export function Students({ isMobile, addStudentOpen, setAddStudentOpen, onCollec
     ...classes.map(c => ({ value: c.id, label: `${c.name} · ${fmtRs(c.monthly_fee || 0)}` })),
   ];
 
+  const activeQ = isMobile ? q : searchQuery;
   const rows = students.filter(s => {
-    const matchQ = !q || s.name.toLowerCase().includes(q.toLowerCase()) || (s.class?.name || '').toLowerCase().includes(q.toLowerCase());
+    const matchQ = !activeQ || s.name.toLowerCase().includes(activeQ.toLowerCase()) || (s.class?.name || '').toLowerCase().includes(activeQ.toLowerCase());
     const matchC = !classFilter || s.class_id === classFilter;
     return matchQ && matchC;
   });
@@ -430,10 +431,7 @@ export function Students({ isMobile, addStudentOpen, setAddStudentOpen, onCollec
       {bulkModal}
       {dbBanner}
       <div style={{ display: 'flex', gap: 12, marginBottom: 18, alignItems: 'center' }}>
-        <div style={{ width: 300 }}>
-          <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Search students or class…" iconLeft={<Icon name="search" size={16} />} />
-        </div>
-        <div style={{ width: 160 }}>
+        <div style={{ width: 180 }}>
           <Select value={classFilter} onChange={e => setClassFilter(e.target.value)} options={classOptions} />
         </div>
         <Button variant="secondary" iconLeft={<Icon name="report" size={16} />} style={{ marginLeft: 'auto' }} onClick={() => setShowClasses(true)}>

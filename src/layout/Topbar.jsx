@@ -1,9 +1,6 @@
-import { useState } from 'react';
 import { Icon } from '../components/Icon.jsx';
 
-export function Topbar({ title, subtitle, action }) {
-  const [query, setQuery] = useState('');
-
+export function Topbar({ title, subtitle, action, searchQuery = '', onSearch }) {
   return (
     <header style={{
       height: 'var(--topbar-height)', flex: 'none',
@@ -23,8 +20,8 @@ export function Topbar({ title, subtitle, action }) {
         }}>
           <Icon name="search" size={16} color="var(--text-faint)" />
           <input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
+            value={searchQuery}
+            onChange={e => onSearch?.(e.target.value)}
             placeholder="Search…"
             style={{
               border: 'none', outline: 'none', background: 'transparent',
