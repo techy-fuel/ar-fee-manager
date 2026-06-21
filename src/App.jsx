@@ -57,6 +57,7 @@ function AppInner() {
   const [page, setPage] = useState('dashboard');
   const [mobileTab, setMobileTab] = useState('dashboard');
   const [addStudentOpen, setAddStudentOpen] = useState(false);
+  const [collectStudentId, setCollectStudentId] = useState('');
   const isMobile = useIsMobile();
 
   const navigate = key => {
@@ -65,14 +66,26 @@ function AppInner() {
     else setMobileTab('more');
   };
 
+  function collectFeeFor(studentId) {
+    setCollectStudentId(studentId);
+    navigate('fees');
+  }
+
+  const sharedProps = {
+    onNavigate: navigate,
+    addStudentOpen,
+    setAddStudentOpen,
+    onCollectFee: collectFeeFor,
+    collectStudentId,
+    setCollectStudentId,
+  };
+
   if (isMobile) {
     return (
       <MobileApp
         page={page}
         mobileTab={mobileTab}
-        onNavigate={navigate}
-        addStudentOpen={addStudentOpen}
-        setAddStudentOpen={setAddStudentOpen}
+        sharedProps={sharedProps}
       />
     );
   }
@@ -92,21 +105,18 @@ function AppInner() {
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
         <Topbar title={title} subtitle={subtitle} action={action} />
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          <Screen
-            onNavigate={navigate}
-            addStudentOpen={addStudentOpen}
-            setAddStudentOpen={setAddStudentOpen}
-          />
+          <Screen {...sharedProps} />
         </div>
       </div>
     </div>
   );
 }
 
-function MobileApp({ page, mobileTab, onNavigate, addStudentOpen, setAddStudentOpen }) {
+function MobileApp({ page, mobileTab, sharedProps }) {
   const Screen = SCREENS[page];
   const isMore = !MOBILE_MAIN_TABS.includes(page);
   const isMoreTab = mobileTab === 'more';
+  const { onNavigate } = sharedProps;
 
   const getTitle = () => {
     if (isMore && isMoreTab && !Screen) return 'More';
@@ -124,12 +134,7 @@ function MobileApp({ page, mobileTab, onNavigate, addStudentOpen, setAddStudentO
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {page === 'more' || (isMoreTab && !Screen)
           ? <MoreMenu onNavigate={onNavigate} />
-          : <Screen
-              isMobile
-              onNavigate={onNavigate}
-              addStudentOpen={addStudentOpen}
-              setAddStudentOpen={setAddStudentOpen}
-            />}
+          : <Screen isMobile {...sharedProps} />}
       </div>
       <MobileNav active={mobileTab} onNavigate={onNavigate} />
     </div>

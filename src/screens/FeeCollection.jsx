@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card } from '../components/Card.jsx';
 import { Button } from '../components/Button.jsx';
 import { Input } from '../components/Input.jsx';
@@ -30,7 +30,7 @@ const EMPTY_FORM = {
   fee_month: '', payment_date: new Date().toISOString().slice(0, 10), method: 'cash',
 };
 
-export function FeeCollection({ isMobile, onNavigate }) {
+export function FeeCollection({ isMobile, onNavigate, collectStudentId, setCollectStudentId }) {
   const { students, loading: studentsLoading } = useStudents();
   const { recordPayment } = usePayments();
 
@@ -44,6 +44,13 @@ export function FeeCollection({ isMobile, onNavigate }) {
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
   const months = genMonths();
+
+  useEffect(() => {
+    if (collectStudentId) {
+      setForm(f => ({ ...f, student_id: collectStudentId }));
+      setCollectStudentId?.('');
+    }
+  }, [collectStudentId]);
 
   const studentOptions = [
     { label: 'Select student', value: '' },

@@ -54,6 +54,12 @@ export function useStudents() {
     return { error };
   }
 
+  async function updateClass(id, name, monthly_fee) {
+    const { error } = await supabase.from('classes').update({ name, monthly_fee: Number(monthly_fee) || 0 }).eq('id', id);
+    if (!error) await load();
+    return { error };
+  }
+
   async function deleteClass(id) {
     // Unlink students first to avoid FK violation, then delete class
     await supabase.from('students').update({ class_id: null }).eq('class_id', id);
@@ -62,5 +68,12 @@ export function useStudents() {
     return { error };
   }
 
-  return { students, classes, loading, addStudent, updateStudent, deleteStudent, addClass, deleteClass, reload: load };
+  async function bulkAddStudents(rows) {
+    if (!academy) return { error: { message: 'Database not connected. Reload the page.' } };
+    const { error } = await supabase.from('students').insert(rows.map(r => ({ ...r, academy_id: academy.id, status: 'active' })));
+    if (!error) await load();
+    return { error };
+  }
+
+  return { students, classes, loading, addStudent, updateStudent, deleteStudent, addClass, updateClass, deleteClass, bulkAddStudents, reload: load };
 }

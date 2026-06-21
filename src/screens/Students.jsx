@@ -11,11 +11,11 @@ import { useStudents } from '../hooks/useStudents.js';
 import { useApp } from '../context/AppContext.jsx';
 import { fmtRs } from '../data/mockData.js';
 
-const IconBtn = ({ name, onClick, title }) => (
+const IconBtn = ({ name, onClick, title, color }) => (
   <button onClick={onClick} title={title} style={{
     width: 30, height: 30, display: 'grid', placeItems: 'center',
     border: '1px solid var(--border-subtle)', background: '#fff',
-    borderRadius: 'var(--radius-sm)', cursor: 'pointer', color: 'var(--text-muted)',
+    borderRadius: 'var(--radius-sm)', cursor: 'pointer', color: color || 'var(--text-muted)',
   }}>
     <Icon name={name} size={15} />
   </button>
@@ -23,26 +23,33 @@ const IconBtn = ({ name, onClick, title }) => (
 
 const EMPTY_FORM = { name: '', parent_name: '', parent_phone: '', class_id: '', student_id: '', enrollment_date: '' };
 
-export function Students({ isMobile, addStudentOpen, setAddStudentOpen }) {
-  const { students, classes, loading, addStudent, updateStudent, deleteStudent, addClass, deleteClass } = useStudents();
+export function Students({ isMobile, addStudentOpen, setAddStudentOpen, onCollectFee }) {
+  const { students, classes, loading, addStudent, updateStudent, deleteStudent, addClass, updateClass, deleteClass, bulkAddStudents } = useStudents();
   const { error: dbError, retry } = useApp();
 
   const [q, setQ]               = useState('');
   const [classFilter, setClassFilter] = useState('');
   const [showAdd, setShowAdd]   = useState(false);
   const [showClasses, setShowClasses] = useState(false);
+  const [showBulk, setShowBulk] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [form, setForm]         = useState(EMPTY_FORM);
   const [saving, setSaving]     = useState(false);
   const [formError, setFormError] = useState('');
 
-  // Class form
+  // Class add/edit form (shared fields)
+  const [editClassId, setEditClassId] = useState(null);
   const [className, setClassName] = useState('');
   const [classFee, setClassFee]   = useState('');
   const [classSaving, setClassSaving] = useState(false);
   const [classError, setClassError]   = useState('');
 
-  // Sync external open trigger (topbar button)
+  // Bulk import
+  const [bulkText, setBulkText]     = useState('');
+  const [bulkParsed, setBulkParsed] = useState(null);
+  const [bulkSaving, setBulkSaving] = useState(false);
+  const [bulkError, setBulkError]   = useState('');
+
   useEffect(() => {
     if (addStudentOpen) {
       setShowAdd(true);
@@ -104,27 +111,69 @@ export function Students({ isMobile, addStudentOpen, setAddStudentOpen }) {
     await deleteStudent(id);
   }
 
-  async function handleAddClass(e) {
+  function startEditClass(c) {
+    setEditClassId(c.id);
+    setClassName(c.name);
+    setClassFee(String(c.monthly_fee || ''));
+    setClassError('');
+  }
+
+  function cancelEditClass() {
+    setEditClassId(null);
+    setClassName('');
+    setClassFee('');
+    setClassError('');
+  }
+
+  async function handleSaveClass(e) {
     e?.preventDefault?.();
     if (!className.trim()) { setClassError('Class name is required.'); return; }
     setClassSaving(true);
     setClassError('');
-    try {
-      const { error } = await addClass(className.trim(), classFee);
-      setClassSaving(false);
-      if (error) { setClassError(error.message || 'Failed to add class.'); return; }
-      setClassName('');
-      setClassFee('');
-    } catch (err) {
-      setClassSaving(false);
-      setClassError(err.message || 'Unexpected error.');
-    }
+    const { error } = editClassId
+      ? await updateClass(editClassId, className.trim(), classFee)
+      : await addClass(className.trim(), classFee);
+    setClassSaving(false);
+    if (error) { setClassError(error.message || 'Failed to save class.'); return; }
+    setEditClassId(null);
+    setClassName('');
+    setClassFee('');
   }
 
   async function handleDeleteClass(id) {
     if (!window.confirm('Delete this class? Students in this class will be unlinked but kept.')) return;
     const { error } = await deleteClass(id);
     if (error) setClassError(error.message || 'Failed to delete class.');
+  }
+
+  function parseBulk() {
+    const rows = bulkText.split('\n')
+      .map(l => l.trim()).filter(Boolean)
+      .map(line => {
+        const sep = line.includes('\t') ? '\t' : ',';
+        const [name, clsName, parentName, phone] = line.split(sep).map(s => s.trim().replace(/^["']|["']$/g, ''));
+        const cls = classes.find(c => c.name.toLowerCase() === (clsName || '').toLowerCase());
+        return { name, clsName: clsName || '', parentName: parentName || '', phone: phone || '', class_id: cls?.id || null, classFound: !!cls && !!clsName };
+      })
+      .filter(r => r.name);
+    setBulkParsed(rows);
+    setBulkError('');
+  }
+
+  async function handleBulkImport() {
+    setBulkSaving(true);
+    setBulkError('');
+    const { error } = await bulkAddStudents(bulkParsed.map(r => ({
+      name: r.name,
+      parent_name: r.parentName || null,
+      parent_phone: r.phone || null,
+      class_id: r.class_id,
+    })));
+    setBulkSaving(false);
+    if (error) { setBulkError(error.message || 'Import failed.'); return; }
+    setShowBulk(false);
+    setBulkText('');
+    setBulkParsed(null);
   }
 
   const classOptions = [
@@ -194,32 +243,46 @@ export function Students({ isMobile, addStudentOpen, setAddStudentOpen }) {
   const classesModal = (
     <Modal
       open={showClasses}
-      onClose={() => { setShowClasses(false); setClassError(''); }}
+      onClose={() => { setShowClasses(false); cancelEditClass(); }}
       title="Manage Classes"
-      footer={<Button variant="secondary" onClick={() => { setShowClasses(false); setClassError(''); }}>Done</Button>}
+      footer={<Button variant="secondary" onClick={() => { setShowClasses(false); cancelEditClass(); }}>Done</Button>}
     >
       <div style={{ display: 'grid', gap: 16 }}>
-        <form onSubmit={handleAddClass} style={{ display: 'grid', gap: 10 }}>
+        {/* Add / Edit form */}
+        <form onSubmit={handleSaveClass} style={{ display: 'grid', gap: 10 }}>
+          <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 700, color: editClassId ? 'var(--blue-600)' : 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            {editClassId ? `Editing: ${classes.find(c => c.id === editClassId)?.name || ''}` : 'Add New Class'}
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 10 }}>
             <Input label="Class Name" placeholder="Class 9-A" value={className} onChange={e => setClassName(e.target.value)} />
             <Input label="Monthly Fee" placeholder="3500" value={classFee} onChange={e => setClassFee(e.target.value)} inputMode="numeric" iconLeft={<span style={{ fontWeight: 700 }}>₨</span>} />
           </div>
-          <Button variant="primary" fullWidth loading={classSaving} onClick={handleAddClass} iconLeft={<Icon name="plus" size={15} />}>Add Class</Button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Button variant="primary" fullWidth loading={classSaving} onClick={handleSaveClass} iconLeft={<Icon name={editClassId ? 'check' : 'plus'} size={15} />}>
+              {editClassId ? 'Update Class' : 'Add Class'}
+            </Button>
+            {editClassId && (
+              <Button variant="secondary" onClick={cancelEditClass}>Cancel</Button>
+            )}
+          </div>
         </form>
+
         {classError && (
           <div style={{ padding: '10px 14px', background: 'var(--red-50)', border: '1px solid var(--red-200)', borderRadius: 'var(--radius-md)', fontSize: 'var(--fs-sm)', color: 'var(--red-700)' }}>
             {classError}
           </div>
         )}
+
         <div style={{ border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
           {classes.length === 0 ? (
             <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 'var(--fs-sm)' }}>
               No classes yet. Add your first class above.
             </div>
           ) : classes.map((c, i) => (
-            <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderTop: i ? '1px solid var(--border-subtle)' : 'none' }}>
+            <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderTop: i ? '1px solid var(--border-subtle)' : 'none', background: editClassId === c.id ? 'var(--blue-50)' : 'transparent' }}>
               <div style={{ fontWeight: 600, color: 'var(--text-strong)' }}>{c.name}</div>
               <div style={{ marginLeft: 'auto', fontWeight: 700, color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>{fmtRs(c.monthly_fee || 0)}/mo</div>
+              <IconBtn name="edit" title="Edit class" onClick={() => startEditClass(c)} color="var(--blue-500)" />
               <IconBtn name="trash" title="Delete class" onClick={() => handleDeleteClass(c.id)} />
             </div>
           ))}
@@ -228,11 +291,81 @@ export function Students({ isMobile, addStudentOpen, setAddStudentOpen }) {
     </Modal>
   );
 
+  const bulkModal = (
+    <Modal
+      open={showBulk}
+      onClose={() => { setShowBulk(false); setBulkText(''); setBulkParsed(null); setBulkError(''); }}
+      title="Bulk Import Students"
+      footer={
+        bulkParsed ? (
+          <>
+            <Button variant="secondary" onClick={() => setBulkParsed(null)}>Back</Button>
+            <Button variant="primary" loading={bulkSaving} onClick={handleBulkImport}>Import {bulkParsed.length} Students</Button>
+          </>
+        ) : (
+          <>
+            <Button variant="secondary" onClick={() => { setShowBulk(false); setBulkText(''); setBulkParsed(null); }}>Cancel</Button>
+            <Button variant="primary" onClick={parseBulk} disabled={!bulkText.trim()}>Preview</Button>
+          </>
+        )
+      }
+    >
+      {!bulkParsed ? (
+        <div style={{ display: 'grid', gap: 12 }}>
+          <div style={{ padding: '10px 14px', background: 'var(--blue-50)', border: '1px solid var(--blue-100)', borderRadius: 'var(--radius-md)', fontSize: 'var(--fs-xs)', color: 'var(--blue-700)', lineHeight: 1.6 }}>
+            <strong>Format:</strong> One student per line<br />
+            Name, Class Name, Parent Name, Phone<br />
+            <em>You can paste directly from Excel (tab-separated)</em>
+          </div>
+          <textarea
+            value={bulkText}
+            onChange={e => setBulkText(e.target.value)}
+            rows={9}
+            placeholder={"Ahmed Ali, Class 9-A, Mr. Ali Khan, +92 300 1234567\nFatima Raza, Class 10, Mrs. Raza, +92 321 9876543"}
+            style={{
+              width: '100%', boxSizing: 'border-box', resize: 'vertical',
+              padding: '10px 12px', border: '1px solid var(--border-default)',
+              borderRadius: 'var(--radius-md)', fontFamily: 'var(--font-mono)',
+              fontSize: 'var(--fs-xs)', lineHeight: 1.6, outline: 'none',
+              color: 'var(--text-strong)', background: 'var(--color-surface)',
+            }}
+          />
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gap: 12 }}>
+          <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>
+            {bulkParsed.length} students ready to import
+            {bulkParsed.some(r => r.clsName && !r.classFound) && (
+              <span style={{ color: 'var(--amber-600)', marginLeft: 8 }}>· Some classes not found (will be unlinked)</span>
+            )}
+          </div>
+          <div style={{ border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', overflow: 'hidden', maxHeight: 320, overflowY: 'auto' }}>
+            {bulkParsed.map((r, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 14px', borderTop: i ? '1px solid var(--border-subtle)' : 'none', fontSize: 'var(--fs-sm)' }}>
+                <span style={{ fontWeight: 600, color: 'var(--text-strong)', minWidth: 0 }}>{r.name}</span>
+                {r.clsName && (
+                  <Badge variant={r.classFound ? 'success' : 'warning'}>{r.clsName}{r.classFound ? '' : ' ⚠'}</Badge>
+                )}
+                {r.phone && <span style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-xs)', marginLeft: 'auto' }}>{r.phone}</span>}
+              </div>
+            ))}
+          </div>
+          {bulkError && (
+            <div style={{ padding: '10px 14px', background: 'var(--red-50)', border: '1px solid var(--red-200)', borderRadius: 'var(--radius-md)', fontSize: 'var(--fs-sm)', color: 'var(--red-700)' }}>
+              {bulkError}
+            </div>
+          )}
+        </div>
+      )}
+    </Modal>
+  );
+
   if (isMobile) {
     return (
       <div style={{ padding: '16px 16px 80px' }}>
         {studentModal}
         {classesModal}
+        {bulkModal}
         {dbBanner}
         <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
           <div style={{ flex: 1 }}>
@@ -240,9 +373,14 @@ export function Students({ isMobile, addStudentOpen, setAddStudentOpen }) {
           </div>
           <Button variant="primary" iconLeft={<Icon name="plus" size={16} />} onClick={() => { setEditTarget(null); setForm(EMPTY_FORM); setShowAdd(true); }}>Add</Button>
         </div>
-        <Button variant="secondary" fullWidth iconLeft={<Icon name="report" size={15} />} onClick={() => setShowClasses(true)} style={{ marginBottom: 14 }}>
-          Manage Classes ({classes.length})
-        </Button>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+          <Button variant="secondary" fullWidth iconLeft={<Icon name="report" size={15} />} onClick={() => setShowClasses(true)}>
+            Classes ({classes.length})
+          </Button>
+          <Button variant="secondary" fullWidth iconLeft={<Icon name="upload" size={15} />} onClick={() => setShowBulk(true)}>
+            Import CSV
+          </Button>
+        </div>
         {loading && <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)', fontSize: 'var(--fs-sm)' }}>Loading…</div>}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {rows.map(s => (
@@ -269,6 +407,7 @@ export function Students({ isMobile, addStudentOpen, setAddStudentOpen }) {
                     <WhatsAppIcon size={14} color="#fff" /> {s.parent_phone}
                   </a>
                 )}
+                <IconBtn name="wallet" title="Collect Fee" onClick={() => onCollectFee?.(s.id)} color="var(--blue-500)" />
                 <IconBtn name="edit" title="Edit" onClick={() => openEdit(s)} />
                 <IconBtn name="trash" title="Delete" onClick={() => handleDelete(s.id)} />
               </div>
@@ -288,16 +427,20 @@ export function Students({ isMobile, addStudentOpen, setAddStudentOpen }) {
     <div style={{ padding: 28, maxWidth: 1280, margin: '0 auto' }}>
       {studentModal}
       {classesModal}
+      {bulkModal}
       {dbBanner}
       <div style={{ display: 'flex', gap: 12, marginBottom: 18, alignItems: 'center' }}>
-        <div style={{ width: 320 }}>
+        <div style={{ width: 300 }}>
           <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Search students or class…" iconLeft={<Icon name="search" size={16} />} />
         </div>
-        <div style={{ width: 180 }}>
+        <div style={{ width: 160 }}>
           <Select value={classFilter} onChange={e => setClassFilter(e.target.value)} options={classOptions} />
         </div>
         <Button variant="secondary" iconLeft={<Icon name="report" size={16} />} style={{ marginLeft: 'auto' }} onClick={() => setShowClasses(true)}>
           Manage Classes ({classes.length})
+        </Button>
+        <Button variant="secondary" iconLeft={<Icon name="upload" size={16} />} onClick={() => setShowBulk(true)}>
+          Import CSV
         </Button>
         <Button variant="primary" iconLeft={<Icon name="plus" size={16} />}
           onClick={() => { setEditTarget(null); setForm(EMPTY_FORM); setShowAdd(true); }}>
@@ -347,6 +490,7 @@ export function Students({ isMobile, addStudentOpen, setAddStudentOpen }) {
                 </td>
                 <td style={{ padding: '11px 18px', textAlign: 'right' }}>
                   <div style={{ display: 'inline-flex', gap: 4 }}>
+                    <IconBtn name="wallet" title="Collect Fee" onClick={() => onCollectFee?.(s.id)} color="var(--blue-500)" />
                     <IconBtn name="edit" title="Edit" onClick={() => openEdit(s)} />
                     <IconBtn name="trash" title="Delete" onClick={() => handleDelete(s.id)} />
                   </div>
