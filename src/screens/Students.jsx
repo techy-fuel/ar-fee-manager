@@ -122,8 +122,9 @@ export function Students({ isMobile, addStudentOpen, setAddStudentOpen }) {
   }
 
   async function handleDeleteClass(id) {
-    if (!window.confirm('Delete this class? Students keep their record but lose this class link.')) return;
-    await deleteClass(id);
+    if (!window.confirm('Delete this class? Students in this class will be unlinked but kept.')) return;
+    const { error } = await deleteClass(id);
+    if (error) setClassError(error.message || 'Failed to delete class.');
   }
 
   const classOptions = [

@@ -55,6 +55,8 @@ export function useStudents() {
   }
 
   async function deleteClass(id) {
+    // Unlink students first to avoid FK violation, then delete class
+    await supabase.from('students').update({ class_id: null }).eq('class_id', id);
     const { error } = await supabase.from('classes').delete().eq('id', id);
     if (!error) await load();
     return { error };
