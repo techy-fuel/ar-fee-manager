@@ -15,6 +15,7 @@ drop policy if exists "payments_own"  on payments;
 drop policy if exists "reminders_own" on reminders;
 
 -- Add missing columns if they don't exist yet
-alter table academies add column if not exists logo_url  text;
-alter table academies add column if not exists wa_number text;
-alter table academies add column if not exists currency  text default 'PKR';
+alter table academies add column if not exists logo_url         text;
+alter table academies add column if not exists wa_number        text;
+alter table academies add column if not exists currency         text default 'PKR';
+alter table academies add column if not exists payment_methods  text default 'Cash,Bank Transfer,JazzCash,EasyPaisa';

@@ -6,6 +6,14 @@ import { Select } from '../components/Select.jsx';
 import { Icon } from '../components/Icon.jsx';
 import { useStudents } from '../hooks/useStudents.js';
 import { usePayments } from '../hooks/usePayments.js';
+import { useApp } from '../context/AppContext.jsx';
+
+const ALL_METHOD_OPTIONS = [
+  { label: 'Cash',          value: 'cash' },
+  { label: 'Bank Transfer', value: 'bank_transfer' },
+  { label: 'JazzCash',      value: 'jazzcash' },
+  { label: 'EasyPaisa',     value: 'easypaisa' },
+];
 
 function genMonths() {
   return Array.from({ length: 12 }, (_, i) => {
@@ -18,13 +26,6 @@ function genMonths() {
   });
 }
 
-const METHOD_OPTIONS = [
-  { label: 'Cash',          value: 'cash' },
-  { label: 'Bank Transfer', value: 'bank_transfer' },
-  { label: 'JazzCash',      value: 'jazzcash' },
-  { label: 'EasyPaisa',     value: 'easypaisa' },
-];
-
 const EMPTY_FORM = {
   student_id: '', transaction_id: '', amount: '',
   fee_month: '', payment_date: new Date().toISOString().slice(0, 10), method: 'cash',
@@ -33,6 +34,14 @@ const EMPTY_FORM = {
 export function FeeCollection({ isMobile, onNavigate, collectStudentId, setCollectStudentId }) {
   const { students, loading: studentsLoading } = useStudents();
   const { recordPayment } = usePayments();
+  const { academy } = useApp();
+
+  const enabledMethods = academy?.payment_methods
+    ? academy.payment_methods.split(',').map(s => s.trim().toLowerCase().replace(' ', '_'))
+    : null;
+  const METHOD_OPTIONS = enabledMethods
+    ? ALL_METHOD_OPTIONS.filter(m => enabledMethods.includes(m.value))
+    : ALL_METHOD_OPTIONS;
 
   const fileRef = useRef(null);
   const [drag, setDrag]         = useState(false);
